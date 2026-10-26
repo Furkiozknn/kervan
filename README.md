@@ -2,6 +2,8 @@
 
 **Play online:** https://furkiozknn.github.io/kervan/ (desktop and phone, no install)
 
+![Kervan gameplay: caravans on the map](docs/gameplay.gif)
+
 A 3D Silk Road trade-strategy game on a low-poly tabletop map of Anatolia at golden hour. Lead camel caravans between
 seven cities, buy low and sell high, hire guards against bandits, build caravanserais and reach the goal before the
 end of year five. One `index.html`, Three.js r170 from a CDN, everything else (models, music, sound) made in code.
