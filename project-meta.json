@@ -37,8 +37,8 @@
   "media": {
     "hero": "docs/map.png",
     "screenshots": [
-      "docs/title.png",
       "docs/map.png",
+      "docs/title.png",
       "docs/market.png",
       "docs/caravan.png",
       "docs/phone.png"
