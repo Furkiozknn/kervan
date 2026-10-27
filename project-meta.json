@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0.0",
+  "id": "kervan",
+  "owner": "Furkiozknn",
+  "repository": "https://github.com/Furkiozknn/kervan",
+  "homepage": "https://furkiozknn.github.io/kervan/",
+  "releases": null,
+  "status": "active",
+  "category": "game",
+  "platform": [
+    "web"
+  ],
+  "primary_language": "JavaScript",
+  "technologies": [
+    "Three.js r170",
+    "Web Audio API",
+    "Blender"
+  ],
+  "version": null,
+  "license": "MIT",
+  "topics": [
+    "browser-game",
+    "threejs",
+    "strategy-game",
+    "trading-game",
+    "claude-code",
+    "claude-game-arena"
+  ],
+  "summary": "3D Silk Road trade strategy on a low-poly map of Anatolia, built by Claude Opus 5.5 · Anadolu haritasında 3D İpek Yolu ticaret stratejisi, Claude Opus 5.5 yaptı",
+  "key_features": [
+    "Seven cities with their own supply and demand; prices react to your trades and to three rival merchants",
+    "Camel caravans follow the roads, stop at caravanserais at night, and need guards against bandits on neglected roads",
+    "Goal: 10,000 akçe and 3 caravanserais before the end of year 5; seasons, contracts, plague and festivals change the market",
+    "The ?auto bot won 12 of 12 seeded runs between day 158 and day 211; a careless bot went bankrupt in the first season every time",
+    "About 60 fps (vsync cap) on Intel UHD 620 at 1280x720 with 20-29 draw calls; one index.html, optional CC0 asset pass"
+  ],
+  "media": {
+    "hero": "docs/map.png",
+    "screenshots": [
+      "docs/title.png",
+      "docs/map.png",
+      "docs/market.png",
+      "docs/caravan.png",
+      "docs/phone.png"
+    ],
+    "gifs": [
+      "docs/gameplay.gif"
+    ],
+    "videos": [
+      "docs/gameplay.mp4",
+      "https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-en.mp4",
+      "https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-tr.mp4"
+    ]
+  },
+  "tests": null,
+  "ci": {
+    "workflows": [],
+    "badge": null
+  },
+  "docs": {
+    "readme": "README.md",
+    "changelog": null,
+    "version_history": null,
+    "roadmap": null,
+    "security": null,
+    "contributing": null,
+    "license_file": "LICENSE"
+  },
+  "social": {
+    "headline": "Lead camel caravans across Anatolia: buy low, sell high, build caravanserais · Deve kervanlarıyla Anadolu'da ucuza al, pahalıya sat, kervansaray kur",
+    "hashtags": [
+      "claudecode",
+      "indiegame"
+    ],
+    "primary_link": "https://furkiozknn.github.io/kervan/"
+  },
+  "provenance": {
+    "generated_at": "2026-10-27",
+    "generator": "hand-written",
+    "rule": "mechanical fields read from the repository; editorial fields hand-written from the README, index.html and docs/assets.md; no field is generated from a guess"
+  }
+}

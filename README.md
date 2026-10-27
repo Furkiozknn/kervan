@@ -1,29 +1,55 @@
-# Kervan
+<p align="center">
+  <a href="https://furkiozknn.github.io/kervan/"><img src="docs/banner.svg" width="100%" alt="Kervan: lead camel caravans across Anatolia, buy low, sell high. Click to play in your browser."></a>
+</p>
+
+<p align="center">
+  <a href="https://furkiozknn.github.io/kervan/"><img src="https://img.shields.io/badge/%E2%96%B6_Play_now-in_your_browser-D97706?style=for-the-badge&labelColor=2B1D12" alt="Play now in your browser"></a>
+  <img src="https://img.shields.io/badge/Three.js-r170-E9B65C?style=for-the-badge&logo=threedotjs&logoColor=white&labelColor=2B1D12" alt="Three.js r170">
+  <img src="https://img.shields.io/badge/built_by-Claude_Opus_5.5-B45309?style=for-the-badge&logo=claude&logoColor=white&labelColor=2B1D12" alt="Built by Claude Opus 5.5">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-7FBF6A?style=for-the-badge&labelColor=2B1D12" alt="MIT licence"></a>
+  <img src="https://img.shields.io/badge/no_install-desktop_%C2%B7_phone-FBF1E0?style=for-the-badge&labelColor=2B1D12" alt="No install, desktop and phone">
+</p>
+
+<p align="center"><b>A 3D Silk Road trade game on a low-poly map of Anatolia at golden hour: lead camel caravans between seven cities, buy low, sell high and build caravanserais before the end of year five.</b></p>
+
+<p align="center">
+  <img src="docs/gameplay.gif" width="640" alt="Kervan gameplay: caravans travel between cities on the map">
+  <br>
+  <sub>Watch the promo: <a href="https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-en.mp4">EN</a> · <a href="https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-tr.mp4">TR</a></sub>
+</p>
 
 **Play online:** https://furkiozknn.github.io/kervan/ (desktop and phone, no install)
 
-![Kervan gameplay: caravans on the map](docs/gameplay.gif)
+## Highlights
 
-A 3D Silk Road trade-strategy game on a low-poly tabletop map of Anatolia at golden hour. Lead camel caravans between
-seven cities, buy low and sell high, hire guards against bandits, build caravanserais and reach the goal before the
-end of year five. One `index.html`, Three.js r170 from a CDN, everything else (models, music, sound) made in code.
-
-![Map](docs/map.png)
-
-| | |
-|---|---|
-| ![Title](docs/title.png) | ![Market](docs/market.png) |
-| ![Caravan](docs/caravan.png) | ![Phone](docs/phone.png) |
+- **Seven cities, one living market.** Bursa, Izmir, Konya, Aksaray, Göreme, Kayseri and Urfa each produce some goods
+  cheaply and want others; prices drift, react to what you and three rival merchants sell, and recover slowly.
+- **Caravans that follow the roads.** Pick a caravan, click a city, and it travels there with the route and ETA shown;
+  it can be redirected while on the road and stops at a caravanserai or camps at night.
+- **Bandits, guards and caravanserais.** Bandits camp on roads you neglect; guards and restored caravanserais keep them
+  away, and upgraded caravanserais cut camel upkeep, earn every day and charge rivals for the night.
+- **Seasons, contracts and events.** Snow closes the Kayseri–Urfa pass in winter, spring floods slow river crossings,
+  plague and festivals shift demand, and cities offer delivery contracts that raise your reputation.
+- **Balanced by a bot.** The `?auto` bot plays with the same actions as a player and won 12 of 12 seeded runs between
+  day 158 and day 211; a careless bot that buys camels and random goods went bankrupt in the first season every time.
+- **Light on a laptop GPU.** About 60 fps (the vsync cap) on Intel UHD 620 at 1280x720 with 20-29 draw calls, and a
+  `?low` tier for phones ([measurements](docs/assets.md)).
+- **One file, made in code.** One `index.html` with Three.js r170 from a CDN; models, music and sound are procedural,
+  with an optional CC0 asset pass loaded on top.
 
 ## How to play
 
-- **Goal:** 10,000 akçe in cash **and** 3 caravanserais of your own before the end of year 5. A faster win earns more
-  stars and a higher score. After a win (or when time runs out) you can keep playing in endless mode.
-- You start in Konya with one caravan (a merchant on horseback and 3 camels) and 200 akçe.
-- Select a caravan (the button at the bottom left, or the rider on the map), then click a city: the caravan follows the
-  roads there. The route and the ETA are shown. You can also redirect a caravan that is already on the road.
-- Click a city to open its market. Click a good to open its slider: left sells, right buys, and the preview shows the
-  total, the average price and how far your trade moves the price.
+> [!TIP]
+> **Goal:** 10,000 akçe in cash **and** 3 caravanserais of your own before the end of year 5. A faster win earns more
+> stars and a higher score; afterwards you can keep playing in endless mode.
+
+You start in Konya with one caravan (a merchant on horseback and 3 camels) and 200 akçe. Select a caravan, then click a
+city to send it there. Click a city to open its market: on a good's slider, left sells and right buys, and the preview
+shows the total, the average price and how far your trade moves the price.
+
+<details>
+<summary><b>More rules</b></summary>
+
 - Every city produces some goods (cheap, deep stock) and wants others (dear, thin stock). Prices drift, react to what
   you and the three rival merchants sell, and recover slowly, so spread your trade over several routes.
 - Camels carry 10 units each and cost upkeep every day. Guards cost upkeep too, but bandits camp on roads you neglect.
@@ -36,7 +62,9 @@ end of year five. One `index.html`, Three.js r170 from a CDN, everything else (m
   crossings. Plague and festivals change a city's demand for a while.
 - If your cash stays below zero and nothing is left to sell, you go bankrupt.
 
-## Controls
+</details>
+
+### Controls
 
 | Action | Mouse / touch | Keyboard |
 |---|---|---|
@@ -53,7 +81,8 @@ Settings (master, music and effects volume, TR / EN, Low / High quality, fullscr
 under `arena.kervan.settings`; the run under `arena.kervan.save`, the best score under `arena.kervan.best`.
 Turkish is the default language.
 
-## URL flags
+<details>
+<summary><b>URL flags for testing</b></summary>
 
 | Flag | Effect |
 |---|---|
@@ -67,6 +96,46 @@ Turkish is the default language.
 | `?noassets` | skip the optional models, textures, HDRI and sound files (fully procedural) |
 
 The live state is on `window.kervan` (`kervan.state`, `kervan.sim`, `kervan.info()`).
+
+</details>
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/title.png" alt="Title screen"><br><sub>Title screen</sub></td>
+    <td width="33%"><img src="docs/map.png" alt="The map with seven cities"><br><sub>Seven cities on one map</sub></td>
+    <td width="33%"><img src="docs/market.png" alt="Caravan panel and the Konya market"><br><sub>Caravan panel and the Konya market</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/caravan.png" alt="Izmir harbour with ships"><br><sub>Izmir harbour</sub></td>
+    <td><img src="docs/assets-after-city-goreme.png" alt="Fairy chimneys of Göreme"><br><sub>Fairy chimneys of Göreme</sub></td>
+    <td><img src="docs/assets-after-city-bursa.png" alt="Bursa with the Ulu Cami"><br><sub>Bursa and its Ulu Cami</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets-after-han.png" alt="A restored caravanserai"><br><sub>A restored caravanserai</sub></td>
+    <td><img src="docs/assets-after-night.png" alt="Night at the Kayseri citadel"><br><sub>Night at Kayseri</sub></td>
+    <td><img src="docs/assets-after-market.png" alt="Konya market in Turkish"><br><sub>Konya market (Turkish UI)</sub></td>
+  </tr>
+</table>
+
+<details>
+<summary><b>Phone layout and the asset pass, before and after</b></summary>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets-before-han.png" alt="Caravanserai before the asset pass"><br><sub>Caravanserai, procedural</sub></td>
+    <td width="50%"><img src="docs/assets-after-han.png" alt="Caravanserai after the asset pass"><br><sub>Caravanserai, with the asset pass</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets-before-city-konya.png" alt="Konya before the asset pass"><br><sub>Konya, procedural</sub></td>
+    <td><img src="docs/assets-after-city-konya.png" alt="Konya after the asset pass"><br><sub>Konya, with the asset pass</sub></td>
+  </tr>
+</table>
+
+<p align="center"><img src="docs/phone.png" width="300" alt="Kervan on a phone"><br><sub>On a phone</sub></p>
+
+</details>
 
 ## Balance
 
@@ -87,20 +156,33 @@ then open <http://localhost:8000/>.
 
 ## How it was made
 
-Built by Claude Opus 5.5 with Claude Code from one prompt: [prompts/kervan.md](prompts/kervan.md). The base game is
-fully procedural (the asset pass below only adds optional files on top): the terrain, cities, caravanserais, caravans and bandits are merged or instanced low-poly primitives with
-vertex colours, and the ney-and-frame-drum music, camel bells, footsteps, bazaar murmur and wind are synthesised with
-the Web Audio API.
-
-## Assets
+Built by **Claude Opus 5.5** with Claude Code from one prompt: [prompts/kervan.md](prompts/kervan.md). The base game is
+fully procedural: the terrain, cities, caravanserais, caravans and bandits are merged or instanced low-poly primitives
+with vertex colours, and the ney-and-frame-drum music, camel bells, footsteps, bazaar murmur and wind are synthesised
+with the Web Audio API.
 
 An optional asset pass adds Blender-built low-poly models (camels with a nodding head, the caravan leader and guards,
 caravanserais, a bazaar corner and landmarks for each of the seven cities), a subtle terrain detail texture, a
-parchment grain on the panels, a Poly Haven HDRI for the water on the High tier and CC0 sounds for coins, loading,
-steps and clicks. They load after the first frame and the procedural versions stay as the fallback (`?noassets`
-skips them; the Low tier keeps the procedural models). Licences: [CREDITS.md](CREDITS.md); file list, sizes and fps
-before and after: [docs/assets.md](docs/assets.md). Model scripts: `assets/src/`.
+parchment grain on the panels, a Poly Haven HDRI for the water on the High tier and CC0 sounds. They load after the
+first frame and the procedural versions stay as the fallback (`?noassets` skips them; the Low tier keeps the
+procedural models). Licences: [CREDITS.md](CREDITS.md); file list, sizes and fps before and after:
+[docs/assets.md](docs/assets.md). Model scripts: `assets/src/`.
+
+Kervan is part of the **Claude Game Arena** series, where each game is built by a Claude model from one prompt. The
+other games: [Dolmuş](https://furkiozknn.github.io/dolmus/) · [Peri Golf](https://furkiozknn.github.io/peri-golf/) ·
+[Mehter](https://furkiozknn.github.io/mehter/) · [Boğaz Vapuru](https://furkiozknn.github.io/bogaz-vapuru/) ·
+[Simit Fırını](https://furkiozknn.github.io/simit-firini/) · [Karagöz](https://furkiozknn.github.io/karagoz/) ·
+[Lale Bahçesi](https://furkiozknn.github.io/lale-bahcesi/)
+
+## Türkçe
+
+**Kervan**, altın saatte alçak poligon bir Anadolu haritasında geçen 3D İpek Yolu ticaret oyunu. Deve kervanlarını yedi
+şehir arasında yönet, ucuza al pahalıya sat, haydutlara karşı muhafız tut ve 5. yıl bitmeden 10.000 akçe ile 3
+kervansaraya ulaş. Kurulum yok; masaüstünde ve telefonda tarayıcıda oynanır. Claude Opus 5.5 tarafından Claude Code ile
+tek bir prompt'tan yapıldı.
+
+**Oyna:** https://furkiozknn.github.io/kervan/
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). Third-party assets are CC0, see [CREDITS.md](CREDITS.md).
