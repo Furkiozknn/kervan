@@ -18,7 +18,7 @@
   <sub>Watch the promo: <a href="https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-en.mp4">EN</a> · <a href="https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-tr.mp4">TR</a></sub>
 </p>
 
-**Play online:** https://furkiozknn.github.io/kervan/ (desktop and phone, no install)
+<p align="center"><b>Play online: <a href="https://furkiozknn.github.io/kervan/">https://furkiozknn.github.io/kervan/</a></b> (desktop and phone, no install)</p>
 
 ## Highlights
 
