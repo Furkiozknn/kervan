@@ -166,7 +166,7 @@ table.goods td.g { display: flex; align-items: center; gap: 6px; font-weight: 70
 
 /* screens + modals */
 .screen { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; }
-#title { background: radial-gradient(ellipse at 50% 45%, rgba(27, 31, 59, 0.05), rgba(27, 31, 59, 0.55)); }
+#title { background: radial-gradient(ellipse at 50% 45%, rgba(43, 26, 16, 0.02), rgba(43, 26, 16, 0.24)); }
 #title .box { position: relative; width: min(560px, 100%); padding: 26px 30px 18px; text-align: center; max-height: 100%; overflow: auto; }
 #title .box::before, #title .box::after { content: ''; position: absolute; width: 46px; height: 46px; pointer-events: none; border: 2px solid rgba(142, 59, 28, 0.55); }
 #title .box::before { left: 10px; top: 10px; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
@@ -3475,39 +3475,40 @@ addEventListener('resize', () => {
 // ------------------------------------------------------------------------------------------------
 // frame loop
 // ------------------------------------------------------------------------------------------------
-const SKY = { day: new THREE.Color('#F0CF9A'), dusk: new THREE.Color('#E58A5A'), night: new THREE.Color(PALETTE.indigo), winter: new THREE.Color('#DCD6CF') };
-const SUNC = { low: new THREE.Color('#FFAD5C'), high: new THREE.Color('#FFE3B6'), moon: new THREE.Color('#9AA8F2') };
+const SKY = { day: new THREE.Color('#F0CF9A'), dawn: new THREE.Color('#F6C98E'), dusk: new THREE.Color('#E58A5A'), night: new THREE.Color(PALETTE.indigo), winter: new THREE.Color('#DCD6CF') };
+const SUNC = { low: new THREE.Color('#FFC478'), high: new THREE.Color('#FFE6BE'), moon: new THREE.Color('#9AA8F2') };
 const RIM = { day: new THREE.Color('#FFB866'), night: new THREE.Color('#7F8CE0') };
 function updateLight() {
-  const h = sim.hour, nf = sim.nightFactor(), dayT = Math.max(0, Math.min(1, (h - 5.5) / 15));
-  const el = 0.32 + 0.55 * Math.sin(Math.PI * dayT), az = lerp(1.15, -1.15, dayT);
+  // Keep 06:00 start bright and warm: night darkening (dk) fades out before 06:00 while sun elevation starts higher at dawn
+  const h = sim.hour, nf = sim.nightFactor(), dk = sstep(0.45, 0.92, nf), dayT = Math.max(0, Math.min(1, (h - 4.8) / 15.7));
+  const el = 0.48 + 0.42 * Math.sin(Math.PI * dayT), az = lerp(1.15, -1.15, dayT);
   _v.set(Math.sin(az) * Math.cos(el), Math.sin(el), 0.55 * Math.cos(el) + 0.2).normalize();
   const moon = _v2.set(-0.35, 0.82, 0.45).normalize();
   const dir = _v.clone().lerp(moon, sstep(0.55, 0.85, nf)).normalize();
   sun.position.copy(dir).multiplyScalar(300); sun.target.position.set(0, 0, 0);
-  col.copy(SUNC.low).lerp(SUNC.high, Math.sin(Math.PI * dayT) * 0.8);
-  sun.color.copy(col).lerp(SUNC.moon, nf);
-  sun.intensity = lerp(2.8, 0.75, nf);
+  col.copy(SUNC.low).lerp(SUNC.high, Math.max(h < 12 ? 0.45 : 0, Math.sin(Math.PI * dayT) * 0.85));
+  sun.color.copy(col).lerp(SUNC.moon, dk);
+  sun.intensity = lerp(2.9, 0.75, dk);
   const dusk = 1 - Math.abs(nf * 2 - 1);
-  hemi.color.set('#FFE7C4').lerp(col2.set('#F2A06A'), dusk * 0.35).lerp(col2.set('#56609E'), nf);
-  hemi.groundColor.set('#7A5434').lerp(col2.set(PALETTE.indigo), nf);
-  hemi.intensity = lerp(1.25, 0.95, nf);
+  hemi.color.set('#FFEAD0').lerp(col2.set(h < 12 ? '#FFD59E' : '#F2A06A'), dusk * 0.3).lerp(col2.set('#56609E'), dk);
+  hemi.groundColor.set('#865E3B').lerp(col2.set(PALETTE.indigo), dk);
+  hemi.intensity = lerp(1.35, 0.95, dk);
   // rim light: warm by day and at dusk, cool moonlight at night; cloud shadows only while the sun is up
-  FX.uRim.value.copy(RIM.day).lerp(RIM.night, nf).multiplyScalar(lerp(0.42, 0.55, dusk) * (1 - nf * 0.3));
-  FX.uCloud.value = 0.17 * (1 - nf) * (sim.season === 3 ? 0.6 : 1);
+  FX.uRim.value.copy(RIM.day).lerp(RIM.night, dk).multiplyScalar(lerp(0.45, 0.58, dusk) * (1 - dk * 0.3));
+  FX.uCloud.value = 0.17 * (1 - dk) * (sim.season === 3 ? 0.6 : 1);
   FX.uTime.value = performance.now() / 1000;
-  FX.uTint.value.setRGB(1, 1, 1).lerp(col2.setRGB(0.6, 0.66, 1.08), nf).lerp(col2.setRGB(1.06, 0.96, 0.9), dusk * (1 - nf) * 0.8);
+  FX.uTint.value.setRGB(1, 1, 1).lerp(col2.setRGB(0.6, 0.66, 1.08), dk).lerp(col2.setRGB(1.06, 0.99, 0.92), dusk * (1 - dk) * 0.7);
   col.copy(SKY.day);
   if (sim.season === 3) col.lerp(SKY.winter, 0.5);
-  col.lerp(SKY.dusk, dusk * 0.6).lerp(SKY.night, nf);
+  col.lerp(h < 12 ? SKY.dawn : SKY.dusk, dusk * (h < 12 ? 0.45 : 0.6)).lerp(SKY.night, dk);
   scene.background.copy(col); scene.fog.color.copy(col);
   // High tier: the golden-hour HDRI lights the water and salt lake; it fades out with the day and turns with the sun
-  if (scene.environment) { scene.environmentIntensity = lerp(0.8, 0.05, nf) * (sim.season === 3 ? 0.85 : 1); scene.environmentRotation.y = -az + 1.2; world.lake.material.envMapIntensity = scene.environmentIntensity * 0.18; world.lake.material.envMapRotation.y = -az + 1.2; }
+  if (scene.environment) { scene.environmentIntensity = lerp(0.85, 0.05, dk) * (sim.season === 3 ? 0.85 : 1); scene.environmentRotation.y = -az + 1.2; world.lake.material.envMapIntensity = scene.environmentIntensity * 0.18; world.lake.material.envMapRotation.y = -az + 1.2; }
   // spring floods raise the river and coast
   const flood = sim.season === 0 ? Math.sin(Math.PI * (sim.dayOfSeason / ECONOMY.time.seasonDays)) : 0;
   world.water.position.y = 0.05 + flood * 0.45;
   world.water.material.color.set(WATER_COL).lerp(col2.set('#7C8A6A'), flood * 0.45);
-  return nf;
+  return dk;
 }
 const perf = { upd: 0, ren: 0, lab: 0 };
 let shadowTick = 0;
