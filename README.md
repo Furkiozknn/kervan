@@ -145,12 +145,13 @@ stitched leather buttons.
 
 <p align="center"><img src="docs/redesign-before-after.png" width="100%" alt="The same map at the same hour before and after the redesign"><br><sub>Same seed, same hour: before (left) and after (right)</sub></p>
 
-- **Palette and light:** a warm golden-hour sun with a sand-coloured hemisphere fill, an indigo night with lanterns in
-  the cities and campfires at night camps, and warmer fog for depth.
-- **Environment:** the board now sits on a sea of wind-shaped dunes with vertex-coloured ridges, palm oases with water,
-  scattered rocks and drifting sand motes; the dunes hidden under the board are collapsed so they cost almost nothing.
-- **Characters and objects:** camels with a walking gait and saddle cloths, riders, caravanserais with arched portals.
-- **UI skin:** parchment panels, leather buttons with stitched edges, a serif display face and line icons on every
+- **Palette and light:** the five-colour palette on every material, a rim light, drifting cloud shadows and an indigo
+  night tint.
+- **Environment:** the plateau rises from a dune sea with sandstone strata; desert dune ridges, four palm oases and
+  wind-blown sand; the dunes hidden under the board are collapsed so they cost almost nothing.
+- **Characters, objects and FX:** rounded pacing camels with saddle blankets, blind arcades on the caravanserais, night
+  camps with tents and embers, and an inked route line that marches toward the destination.
+- **UI skin:** parchment panels, stitched leather buttons and a self-hosted Marcellus display face (OFL) on every
   screen (title, top bar, caravan, market, caravanserai, ledger, pause, settings, end); a compact top bar and bottom
   sheet on phones in portrait and short landscape.
 - **Kept:** the simulation, economy table, controls, bot, saves (`arena.kervan.*`), flags and both languages.
