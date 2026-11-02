@@ -1495,8 +1495,16 @@ function buildBoardEdge() {
     for (let v = 0; v < 3; v++) dcol.push(col.r * k, col.g * k, col.b * k);
   }
   g.setAttribute('color', new THREE.Float32BufferAttribute(dcol, 3));
+  // triangles hidden under the board are collapsed (no fragments), and the dunes draw after the board so the
+  // depth test rejects what the plateau covers: the dune sea costs almost nothing on the iGPU
+  const inside = (x, z) => Math.abs(x) < BW / 2 - 2 && Math.abs(z) < BD / 2 - 2;
+  for (let i = 0; i < p.count; i += 3) {
+    if (inside(p.getX(i), p.getZ(i)) && inside(p.getX(i + 1), p.getZ(i + 1)) && inside(p.getX(i + 2), p.getZ(i + 2))) {
+      for (let v = 1; v < 3; v++) p.setXYZ(i + v, p.getX(i), p.getY(i), p.getZ(i));
+    }
+  }
   const dunes = new THREE.Mesh(g, matClay);
-  dunes.receiveShadow = true;
+  dunes.receiveShadow = true; dunes.renderOrder = 1;
   scene.add(dunes);
   world.dunes = dunes;
   // the outer sea surface, just under the cliffs on the west
