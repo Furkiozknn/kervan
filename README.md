@@ -13,7 +13,7 @@
 <p align="center"><b>A 3D Silk Road trade game on a low-poly map of Anatolia at golden hour: lead camel caravans between seven cities, buy low, sell high and build caravanserais before the end of year five.</b></p>
 
 <p align="center">
-  <img src="docs/gameplay.gif" width="640" alt="Kervan gameplay: caravans travel between cities on the map">
+  <img src="docs/gameplay.gif" width="640" alt="Kervan gameplay after the redesign: camel caravans travel the warm dune map between cities, with the parchment and leather UI">
   <br>
   <sub>Watch the promo: <a href="https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-en.mp4">EN</a> · <a href="https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-tr.mp4">TR</a></sub>
 </p>
