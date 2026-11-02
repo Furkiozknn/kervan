@@ -1168,7 +1168,7 @@ const store = {
   del(k) { try { localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } },
 };
 const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 620;
-const settings = Object.assign({ master: 0.8, music: 0.6, sfx: 0.8, lang: 'tr', quality: isPhone ? 'low' : 'high', musicOn: true, sfxOn: true, muted: false }, store.get(SKEY) || {});
+const settings = Object.assign({ master: 0.8, music: 0.6, sfx: 0.8, lang: /^tr/i.test(navigator.language || '') ? 'tr' : 'en', quality: isPhone ? 'low' : 'high', musicOn: true, sfxOn: true, muted: false }, store.get(SKEY) || {});
 if (FLAGS.lang) settings.lang = FLAGS.lang === 'en' ? 'en' : 'tr';
 const saveSettings = () => store.set(SKEY, settings);
 const lowQ = () => FLAGS.low || settings.quality === 'low';
