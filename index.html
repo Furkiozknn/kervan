@@ -218,10 +218,20 @@ canvas.chart { width: 100%; height: 180px; display: block; background: rgba(255,
   .set { grid-template-columns: 96px 1fr 40px; }
 }
 @media (max-width: 420px) { .seg .btn, #hud .seg .btn { padding: 0 6px; } #hud .tools .opt { display: none; } }
-@media (max-height: 500px) and (orientation: landscape) {
-  .panel, .panel.right { top: 62px; bottom: 6px; max-height: none; width: 330px; }
-  .panel.right { width: 380px; }
-  #title .logo svg { width: 64px; height: 64px; } #title h1 { font-size: 42px; } #title .how { display: none; }
+@media (max-height: 500px) and (min-width: 761px) {
+  #hud { top: 4px; left: 4px; right: 4px; padding: 4px 6px 4px 8px; gap: 6px; }
+  #hud .brand span, .chip .sub, .chip.opt, #hud .tools .opt { display: none; }
+  #hud .stats { justify-content: flex-start; gap: 4px; }
+  .chip { padding: 0 8px; }
+  #toasts { top: 62px; }
+  .panel, .panel.right { top: 60px; bottom: 4px; max-height: none; width: 360px; }
+  .panel.left { left: 4px; } .panel.right { right: 4px; width: 400px; }
+  #cvBar { bottom: 24px; }
+  #hint { display: none; }
+  #title .box { padding: 14px 22px 12px; }
+  #title .logo svg { width: 58px; height: 58px; } #title h1 { font-size: 40px; } #title .tag1 { margin: 4px 0 8px; } #title .how { display: none; }
+  #title .menu .btn { min-height: 44px; }
+  .modal .box { padding: 16px; } .modal h2 { font-size: 28px; margin-bottom: 6px; }
 }
 </style>
 </head>
@@ -2995,7 +3005,8 @@ function selectCaravan(id, focus) {
   else if (isNarrow()) { $('cityPanel').classList.add('hidden'); game.openCity = null; game.openHan = null; }
   showHint(t('hintSelected'));
 }
-const isNarrow = () => innerWidth <= 760;
+// phones: one panel at a time (portrait bottom sheet, or a side page in short landscape screens)
+const isNarrow = () => innerWidth <= 760 || innerHeight <= 500;
 function cityClicked(id) {
   const cv = game.selCv && sim.caravan(game.selCv);
   if (cv && cv.city !== id && cv.dest !== id) {
