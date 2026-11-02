@@ -20,6 +20,10 @@
 
 <p align="center"><b>Play online: <a href="https://furkiozknn.github.io/kervan/">https://furkiozknn.github.io/kervan/</a></b> (desktop and phone, no install)</p>
 
+<!-- portals:start -->
+<p align="center">Also on: <a href="https://furkiozknn.itch.io/kervan">itch.io</a></p>
+<!-- portals:end -->
+
 ## Highlights
 
 - **Seven cities, one living market.** Bursa, Izmir, Konya, Aksaray, Göreme, Kayseri and Urfa each produce some goods
@@ -233,3 +237,5 @@ tek bir prompt'tan yapıldı.
 ## License
 
 MIT, see [LICENSE](LICENSE). Third-party assets are CC0, see [CREDITS.md](CREDITS.md).
+
+Like the game? You can support new rounds on [Buy Me a Coffee](https://buymeacoffee.com/furkiozkann). The game stays free.
