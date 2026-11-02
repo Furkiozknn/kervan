@@ -32,7 +32,7 @@
   plague and festivals shift demand, and cities offer delivery contracts that raise your reputation.
 - **Balanced by a bot.** The `?auto` bot plays with the same actions as a player and won 12 of 12 seeded runs between
   day 158 and day 211; a careless bot that buys camels and random goods went bankrupt in the first season every time.
-- **Light on a laptop GPU.** About 60 fps (the vsync cap) on Intel UHD 620 at 1280x720 with 20-29 draw calls, and a
+- **Light on a laptop GPU.** About 60 fps (the vsync cap) on Intel UHD 620 at 1280x720 with 25-29 draw calls, and a
   `?low` tier for phones ([measurements](docs/assets.md)).
 - **One file, made in code.** One `index.html` with Three.js r170 from a CDN; models, music and sound are procedural,
   with an optional CC0 asset pass loaded on top.
@@ -108,7 +108,7 @@ The live state is on `window.kervan` (`kervan.state`, `kervan.sim`, `kervan.info
     <td width="33%"><img src="docs/market.png" alt="Caravan panel and the Konya market"><br><sub>Caravan panel and the Konya market</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/caravan.png" alt="Izmir harbour with ships"><br><sub>Izmir harbour</sub></td>
+    <td><img src="docs/caravan.png" alt="A camel caravan leaving Kurşunlu Han on the coast"><br><sub>A caravan at Kurşunlu Han</sub></td>
     <td><img src="docs/assets-after-city-goreme.png" alt="Fairy chimneys of Göreme"><br><sub>Fairy chimneys of Göreme</sub></td>
     <td><img src="docs/assets-after-city-bursa.png" alt="Bursa with the Ulu Cami"><br><sub>Bursa and its Ulu Cami</sub></td>
   </tr>
@@ -136,6 +136,43 @@ The live state is on `window.kervan` (`kervan.state`, `kervan.sim`, `kervan.info
 <p align="center"><img src="docs/phone.png" width="300" alt="Kervan on a phone"><br><sub>On a phone</sub></p>
 
 </details>
+
+## Redesign (2026-11)
+
+**Art direction:** a stylized Silk Road adventure in warm dune sand (#E0B97A), terracotta (#B4532A), oasis green
+(#2F8F6B), night indigo (#1B1F3B) and lantern light (#FFB347); the UI is a travel journal of parchment panels and
+stitched leather buttons.
+
+<p align="center"><img src="docs/redesign-before-after.png" width="100%" alt="The same map at the same hour before and after the redesign"><br><sub>Same seed, same hour: before (left) and after (right)</sub></p>
+
+- **Palette and light:** the five-colour palette on every material, a rim light, drifting cloud shadows and an indigo
+  night tint.
+- **Environment:** the plateau rises from a dune sea with sandstone strata; desert dune ridges, four palm oases and
+  wind-blown sand; the dunes hidden under the board are collapsed so they cost almost nothing.
+- **Characters, objects and FX:** rounded pacing camels with saddle blankets, blind arcades on the caravanserais, night
+  camps with tents and embers, and an inked route line that marches toward the destination.
+- **UI skin:** parchment panels, stitched leather buttons and a self-hosted Marcellus display face (OFL) on every
+  screen (title, top bar, caravan, market, caravanserai, ledger, pause, settings, end); a compact top bar and bottom
+  sheet on phones in portrait and short landscape.
+- **Kept:** the simulation, economy table, controls, bot, saves (`arena.kervan.*`), flags and both languages.
+- **Measured** (headless Chrome, 1280x720, seed 3): 60 fps before and after (the vsync cap); 25 -> 29 draw calls and
+  110k -> 132k triangles; `?low` 27 calls and 92k triangles. The `?auto` bot still wins (day 212 for seed 3, day 142
+  for seed 5) with 0 JS errors, with and without `?noassets`.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/redesign-desert.png" alt="Urfa among the oases"><br><sub>Urfa and its oases</sub></td>
+    <td width="50%"><img src="docs/redesign-night.png" alt="A caravan camped at night"><br><sub>Night camp</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/redesign-pause.png" alt="Pause menu"><br><sub>Pause</sub></td>
+    <td><img src="docs/redesign-settings.png" alt="Settings"><br><sub>Settings</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/redesign-end.png" alt="Victory screen"><br><sub>Victory</sub></td>
+    <td><img src="docs/phone.png" alt="Kervan on a phone" width="60%"><br><sub>Phone, portrait</sub></td>
+  </tr>
+</table>
 
 ## Balance
 

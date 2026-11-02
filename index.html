@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kervan</title>
 <meta name="description" content="Kervan: a 3D Silk Road trade strategy game across a low-poly Anatolia.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/fonts/marcellus-tr.woff2" as="font" type="font/woff2" crossorigin>
 <script>
 // error capture before anything else loads (shown by ?debug)
 window.__errors = [];
@@ -15,151 +13,190 @@ window.addEventListener('error', function (e) { window.__errors.push(String(e.me
 window.addEventListener('unhandledrejection', function (e) { window.__errors.push('promise: ' + String(e.reason && e.reason.message || e.reason)); });
 </script>
 <style>
+/* Kervan 2026-11 redesign: a Silk Road travel journal. Parchment map pages inked in brown, leather buttons with
+   stitching, a leather strap for the top bar. Palette: dune #E0B97A, terracotta #B4532A, oasis #2F8F6B,
+   night indigo #1B1F3B, lantern #FFB347. Display face: Marcellus (OFL, self-hosted subset with Turkish letters). */
+@font-face { font-family: 'KervanDisplay'; src: url(assets/fonts/marcellus-tr.woff2) format('woff2'); font-display: swap; }
 :root {
-  --accent: #B45309; --accent-hi: #D97706; --gold: #E9B65C; --ink: #FBF1E0; --ink-dim: #E2CFB2; --ink-mute: #B9A27F;
-  --glass: rgba(43, 29, 18, 0.66); --glass-hi: rgba(64, 44, 27, 0.78); --line: rgba(255, 226, 180, 0.16);
-  --good: #7FBF6A; --bad: #E2674B; --info: #E9B65C; --radius: 16px;
-  --font: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; --display: 'Marcellus', Georgia, serif;
+  --terra: #B4532A; --terra-hi: #C8663A; --oasis: #2F8F6B; --indigo: #1B1F3B; --lantern: #FFB347; --dune: #E0B97A; --brass: #C9A24A;
+  --parch: #F3E4C4; --parch2: #E7CFA0; --ink: #2B1A10; --ink-dim: #4E3524; --ink-mute: #6E5038; --rule: rgba(78, 53, 36, 0.28);
+  --leather: #5B321C; --leather2: #43230F; --cream: #FBEFD6; --cream-dim: #E9D3AE;
+  --good: #23704A; --bad: #A3321C; --info: #8A6A2A; --radius: 10px; --focus: #1F5FA8;
+  --font: 'Palatino Linotype', Palatino, 'Book Antiqua', 'URW Palladio L', 'Noto Serif', Georgia, serif;
+  --display: 'KervanDisplay', 'Palatino Linotype', Georgia, serif;
+  --paper: radial-gradient(ellipse at 12% 8%, rgba(255, 250, 232, 0.75), rgba(255, 250, 232, 0) 55%),
+    radial-gradient(ellipse at 92% 96%, rgba(170, 108, 52, 0.22), rgba(170, 108, 52, 0) 60%),
+    radial-gradient(ellipse at 85% 10%, rgba(170, 108, 52, 0.12), rgba(170, 108, 52, 0) 40%),
+    linear-gradient(170deg, #F6E9CC, #EBD6AC);
+  --hide: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.04 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; overflow: hidden; background: #2A1D12; color: var(--ink); font-family: var(--font); -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #8E5A33; color: var(--ink); font-family: var(--font); font-variant-numeric: lining-nums tabular-nums; -webkit-tap-highlight-color: transparent; }
 body { touch-action: none; user-select: none; -webkit-user-select: none; }
 canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
 button { font: inherit; color: inherit; }
 .hidden { display: none !important; }
-.glass { background: var(--glass); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(20, 10, 2, 0.35); }
-/* parchment fibres (assets/textures/parchment.webp, neutral grain with alpha) once it has loaded */
-body.paper .glass { background: url(assets/textures/parchment.webp) 0 0 / 256px 256px repeat, var(--glass); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255, 236, 205, 0.08); cursor: pointer; font-weight: 700; letter-spacing: .01em; transition: background .15s, transform .1s, border-color .15s; }
-.btn:hover { background: rgba(255, 236, 205, 0.16); }
-.btn:active { transform: translateY(1px); }
-.btn.primary { background: var(--accent); border-color: #D9792B; color: #fff; }
-.btn.primary:hover { background: var(--accent-hi); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn.sm { min-height: 34px; padding: 0 10px; font-size: 13px; border-radius: 10px; }
+/* parchment page with an inked double frame (the old "glass" class name is kept for the markup) */
+.glass { color: var(--ink); background: var(--hide), var(--paper); border: 1px solid #7A5634; border-radius: var(--radius);
+  box-shadow: inset 0 0 0 4px rgba(246, 233, 204, 0.9), inset 0 0 0 5px rgba(78, 53, 36, 0.42), inset 0 0 26px rgba(150, 95, 45, 0.25), 0 10px 26px rgba(43, 22, 8, 0.38); }
+body.paper .glass { background: url(assets/textures/parchment.webp) 0 0 / 256px 256px repeat, var(--hide), var(--paper); }
+/* leather buttons with a stitched inner edge */
+.btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 9px;
+  border: 1px solid var(--leather2); color: var(--cream); background: linear-gradient(180deg, #74432A, var(--leather) 55%, #4C2914);
+  box-shadow: inset 0 1px 0 rgba(255, 214, 160, 0.28), 0 2px 0 var(--leather2), 0 3px 6px rgba(43, 22, 8, 0.25);
+  cursor: pointer; font-weight: 700; letter-spacing: .01em; transition: filter .15s, transform .1s, box-shadow .15s; }
+.btn::after { content: ''; position: absolute; inset: 3px; border: 1px dashed rgba(251, 239, 214, 0.42); border-radius: 6px; pointer-events: none; }
+.btn:hover { filter: brightness(1.12); }
+.btn:active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255, 214, 160, 0.2), 0 1px 0 var(--leather2); }
+.btn.primary { background: linear-gradient(180deg, #CC6A3A, var(--terra) 55%, #92401C); border-color: #6E2C10; color: #FFF6E6; }
+.btn:disabled { opacity: .45; cursor: not-allowed; filter: saturate(.5); }
+.btn.sm { min-height: 34px; padding: 0 11px; font-size: 13.5px; border-radius: 8px; }
+.btn.sm::after { inset: 2px; border-radius: 6px; }
 .btn.icon { width: 40px; padding: 0; }
 .btn svg, .chip svg { width: 20px; height: 20px; flex: none; }
-:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+#hud :focus-visible, .lbl:focus-visible { outline-color: var(--lantern); }
 @media (pointer: coarse) { .btn, .btn.sm { min-height: 44px; } .btn.icon { width: 44px; } }
 
-/* top bar */
-#hud { position: fixed; top: 10px; left: 10px; right: 10px; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; }
-#hud .brand { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 22px; color: var(--gold); white-space: nowrap; }
+/* top bar: a stitched leather strap with brass-rimmed counters */
+#hud { position: fixed; top: 8px; left: 8px; right: 8px; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; color: var(--cream);
+  background: var(--hide), linear-gradient(180deg, #6E3E23, #4A2814); border: 1px solid #2A140A; border-radius: 12px;
+  box-shadow: inset 0 0 0 3px rgba(74, 40, 20, 0.6), inset 0 1px 0 rgba(255, 214, 160, 0.25), 0 8px 20px rgba(30, 14, 4, 0.4); }
+#hud::before { content: ''; position: absolute; inset: 4px; border: 1px dashed rgba(251, 239, 214, 0.35); border-radius: 9px; pointer-events: none; }
+body.paper #hud.glass { background: var(--hide), linear-gradient(180deg, #6E3E23, #4A2814); }
+#hud .brand { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 23px; color: #F4C87A; white-space: nowrap; letter-spacing: .03em; }
 #hud .brand svg { width: 34px; height: 34px; }
 #hud .stats { display: flex; gap: 6px; flex: 1; justify-content: center; flex-wrap: wrap; min-width: 0; }
-.chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; border-radius: 10px; background: rgba(255, 236, 205, 0.07); font-weight: 700; font-size: 14px; white-space: nowrap; border: 1px solid transparent; }
-.chip.neg { color: var(--bad); }
-.chip .sub { color: var(--ink-mute); font-weight: 600; }
-.chip svg { width: 22px; height: 22px; color: var(--gold); }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 11px; border-radius: 99px; background: rgba(20, 8, 2, 0.32); font-weight: 700; font-size: 14.5px; white-space: nowrap;
+  border: 1px solid rgba(201, 162, 74, 0.45); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); }
+.chip.neg { color: #FF9C80; }
+.chip .sub { color: var(--cream-dim); font-weight: 400; }
+.chip svg { width: 22px; height: 22px; color: #E9BE62; }
 #hud .tools { display: flex; gap: 6px; align-items: center; }
-.seg { display: inline-flex; background: rgba(255, 236, 205, 0.06); border-radius: 12px; padding: 2px; gap: 2px; }
-.seg .btn { min-height: 36px; padding: 0 9px; border: none; background: transparent; border-radius: 10px; font-size: 13px; }
-.seg .btn.on { background: var(--accent); color: #fff; }
-@media (pointer: coarse) { .seg .btn { min-height: 44px; min-width: 44px; } }
+#hud .btn { background: rgba(20, 8, 2, 0.28); border-color: rgba(201, 162, 74, 0.45); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); }
+#hud .btn::after { display: none; }
+.seg { display: inline-flex; background: rgba(43, 26, 16, 0.1); border-radius: 10px; padding: 2px; gap: 2px; border: 1px solid var(--rule); }
+#hud .seg { background: rgba(20, 8, 2, 0.3); border-color: rgba(201, 162, 74, 0.45); }
+.seg .btn, #hud .seg .btn { min-height: 34px; padding: 0 10px; border: none; background: transparent; box-shadow: none; color: inherit; border-radius: 8px; font-size: 13.5px; }
+.seg .btn::after { display: none; }
+.seg .btn.on, #hud .seg .btn.on { background: linear-gradient(180deg, #CC6A3A, var(--terra)); color: #FFF6E6; box-shadow: inset 0 1px 0 rgba(255, 220, 180, 0.35); }
+@media (pointer: coarse) { .seg .btn, #hud .seg .btn { min-height: 44px; min-width: 44px; } }
 
-/* toasts */
-#toasts { position: fixed; top: 74px; left: 50%; transform: translateX(-50%); z-index: 30; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; width: min(440px, calc(100% - 24px)); }
-.toast { padding: 9px 14px; border-radius: 12px; font-size: 14px; font-weight: 600; display: flex; gap: 8px; align-items: center; animation: tin .25s ease-out; border-left: 4px solid var(--info); max-width: 100%; }
-.toast.good { border-left-color: var(--good); } .toast.bad { border-left-color: var(--bad); }
-.toast svg { width: 20px; height: 20px; flex: none; }
-.toast.out { opacity: 0; transform: translateY(-6px); transition: all .4s; }
+/* toasts: journal slips */
+#toasts { position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 30; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; width: min(440px, calc(100% - 24px)); }
+.toast { padding: 9px 14px; border-radius: 6px; font-size: 14.5px; font-weight: 600; display: flex; gap: 8px; align-items: center; animation: tin .22s ease-out; border-left: 5px solid var(--info); max-width: 100%; }
+.toast.good { border-left-color: var(--oasis); } .toast.bad { border-left-color: var(--bad); }
+.toast svg { width: 20px; height: 20px; flex: none; color: var(--info); } .toast.good svg { color: var(--oasis); } .toast.bad svg { color: var(--bad); }
+.toast.out { opacity: 0; transform: translateY(-6px); transition: opacity .25s, transform .25s; }
 @keyframes tin { from { opacity: 0; transform: translateY(-8px); } }
 
-/* side panels */
-.panel { position: fixed; top: 74px; z-index: 15; width: 360px; max-height: calc(100% - 140px); overflow: auto; padding: 14px; scrollbar-width: thin; }
-.panel.left { left: 10px; } .panel.right { right: 10px; width: 420px; }
-.panel h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; color: var(--gold); }
-.panel h3 { margin: 14px 0 6px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-mute); }
+/* side panels: map pages */
+.panel { position: fixed; top: 72px; z-index: 15; width: 360px; max-height: calc(100% - 140px); overflow: auto; padding: 16px; scrollbar-width: thin; scrollbar-color: #9A7550 transparent; animation: pin .2s ease-out; }
+@keyframes pin { from { transform: translateY(6px); } }
+.panel.left { left: 8px; } .panel.right { right: 8px; width: 420px; }
+.panel h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 27px; color: #8E3B1C; letter-spacing: .02em; }
+.panel h3 { display: flex; align-items: center; gap: 8px; margin: 14px 0 6px; font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; }
+.panel h3::after { content: ''; flex: 1; border-top: 1px solid var(--rule); }
 .panel .head { display: flex; align-items: flex-start; gap: 10px; }
 .panel .head .grow { flex: 1; min-width: 0; }
-.panel .subtitle { color: var(--ink-dim); font-size: 13px; margin-top: 2px; }
+.panel .subtitle { color: var(--ink-dim); font-size: 14px; margin-top: 2px; font-style: italic; }
 .row { display: flex; align-items: center; gap: 8px; }
 .row.sp { justify-content: space-between; }
-.muted { color: var(--ink-mute); font-size: 13px; }
+.muted { color: var(--ink-mute); font-size: 14px; }
 .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-.tag { font-size: 12px; padding: 3px 8px; border-radius: 99px; background: rgba(255, 236, 205, 0.08); display: inline-flex; align-items: center; gap: 4px; }
-.tag.p { background: rgba(127, 191, 106, 0.18); } .tag.d { background: rgba(180, 83, 9, 0.35); }
+.tag { font-size: 13px; padding: 3px 9px; border-radius: 99px; background: rgba(43, 26, 16, 0.08); border: 1px solid var(--rule); display: inline-flex; align-items: center; gap: 4px; color: var(--ink); }
+.tag.p { background: rgba(47, 143, 107, 0.16); border-color: rgba(47, 143, 107, 0.45); color: #1C5A43; } .tag.d { background: rgba(180, 83, 42, 0.14); border-color: rgba(180, 83, 42, 0.45); color: #7E3414; }
 .tag svg { width: 14px; height: 14px; }
-.bar { height: 8px; border-radius: 99px; background: rgba(255, 236, 205, 0.1); overflow: hidden; }
-.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
-table.goods { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.goods th { text-align: right; color: var(--ink-mute); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 4px; }
+.bar { height: 8px; border-radius: 99px; background: rgba(43, 26, 16, 0.12); overflow: hidden; box-shadow: inset 0 1px 2px rgba(43, 26, 16, 0.2); }
+.bar > i { display: block; height: 100%; background: linear-gradient(90deg, #92401C, var(--terra-hi)); border-radius: 99px; transition: width .25s; }
+table.goods { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.goods th { text-align: right; color: var(--ink-mute); font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; padding: 4px; border-bottom: 1px solid rgba(78, 53, 36, 0.5); }
 table.goods th:first-child, table.goods td:first-child { text-align: left; }
-table.goods td { padding: 5px 4px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
+table.goods td { padding: 5px 4px; text-align: right; border-top: 1px dotted rgba(78, 53, 36, 0.4); white-space: nowrap; }
+table.goods tr[data-g]:hover td { background: rgba(180, 83, 42, 0.08); }
 table.goods td.g { display: flex; align-items: center; gap: 6px; font-weight: 700; }
 .gi { width: 22px; height: 22px; flex: none; }
 .up { color: var(--good); } .dn { color: var(--bad); }
 .arrow { width: 12px; height: 12px; vertical-align: -1px; }
-.trade { padding: 8px; margin: 4px 0 6px; border-radius: 12px; background: rgba(255, 236, 205, 0.05); }
-.trade input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; }
-.trade .preview { font-size: 12px; color: var(--ink-dim); min-height: 16px; }
+.trade { padding: 9px; margin: 4px 0 6px; border-radius: 8px; background: rgba(255, 250, 235, 0.55); border: 1px dashed rgba(78, 53, 36, 0.45); }
+.trade input[type=range] { width: 100%; accent-color: var(--terra); height: 28px; }
+.trade .preview { font-size: 13px; color: var(--ink-dim); min-height: 16px; }
 .trade .preview b { color: var(--ink); }
-.trade .preview .warn { color: var(--bad); }
-.card { padding: 10px; border-radius: 12px; background: rgba(255, 236, 205, 0.06); margin-bottom: 6px; font-size: 13px; }
+.trade .preview .warn { color: var(--bad); font-weight: 700; }
+.card { padding: 10px; border-radius: 8px; background: rgba(255, 250, 235, 0.5); border: 1px solid var(--rule); margin-bottom: 6px; font-size: 14px; }
 .card .t { font-weight: 700; display: flex; gap: 6px; align-items: center; }
-.cargo { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 10px; font-size: 13px; align-items: center; }
-.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; font-size: 13px; align-items: center; }
+.cargo { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 10px; font-size: 14px; align-items: center; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; font-size: 14px; align-items: center; }
 .stepper { display: inline-flex; gap: 4px; align-items: center; }
-.citybtns { display: flex; flex-wrap: wrap; gap: 4px; }
+.citybtns { display: flex; flex-wrap: wrap; gap: 5px; }
 .close { margin-left: auto; }
 .panel .row svg, .panel .kv svg, .panel .card svg, .panel h3 svg, .modal .card svg { width: 18px; height: 18px; flex: none; }
+.panel .row > svg, .panel .kv > .row > svg { color: #8E3B1C; }
 .panel .btn svg { width: 18px; height: 18px; }
 
 /* caravan chips */
-#cvBar { position: fixed; left: 10px; bottom: 34px; z-index: 14; display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 20px); }
-#cvBar .btn { background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-#cvBar .btn.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
-#cvBar .btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
-#cvBar .btn .dot.road { background: var(--gold); } #cvBar .btn .dot.night { background: #7D8FC4; }
-#hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 30px; z-index: 16; padding: 8px 12px; font-size: 13px; color: var(--ink-dim); max-width: 360px; }
-#footer { position: fixed; left: 0; right: 0; bottom: 6px; text-align: center; font-size: 12px; color: var(--ink-mute); z-index: 13; pointer-events: none; text-shadow: 0 1px 2px #0008; }
+#cvBar { position: fixed; left: 8px; bottom: 34px; z-index: 14; display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 16px); }
+#cvBar .btn.on { box-shadow: 0 0 0 3px var(--lantern), 0 2px 0 var(--leather2); }
+#cvBar .btn .dot { width: 9px; height: 9px; border-radius: 50%; background: #6FD49A; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
+#cvBar .btn .dot.road { background: var(--lantern); } #cvBar .btn .dot.night { background: #8E9CF0; }
+#hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 30px; z-index: 16; padding: 10px 14px; font-size: 14px; color: var(--ink-dim); max-width: 380px; font-style: italic; }
+#footer { position: fixed; left: 0; right: 0; bottom: 6px; text-align: center; font-size: 12.5px; color: var(--cream); z-index: 13; pointer-events: none; text-shadow: 0 1px 2px #000c, 0 0 6px #0008; }
 
-/* world labels */
+/* world labels: inked map tags */
 #labels { position: fixed; inset: 0; pointer-events: none; z-index: 10; overflow: hidden; }
-.lbl { position: absolute; left: 0; top: 0; transform: translate(-50%, -100%); white-space: nowrap; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 99px; background: rgba(43, 29, 18, 0.62); border: 1px solid var(--line); font-weight: 800; font-size: 13px; text-shadow: 0 1px 2px #000a; backdrop-filter: blur(4px); }
-.lbl.sel { background: var(--accent); border-color: #E59144; }
-.lbl .pip { width: 8px; height: 8px; border-radius: 50%; }
+.lbl { position: absolute; left: 0; top: 0; transform: translate(-50%, -100%); white-space: nowrap; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px;
+  border-radius: 4px; background: rgba(246, 233, 204, 0.94); border: 1px solid #6E4A2C; color: var(--ink); font-family: var(--display); font-size: 14.5px; letter-spacing: .03em;
+  box-shadow: 0 2px 5px rgba(43, 22, 8, 0.35), inset 0 0 0 2px rgba(246, 233, 204, 0.9), inset 0 0 0 3px rgba(78, 53, 36, 0.3); }
+.lbl.sel { background: var(--terra); color: #FFF6E6; border-color: #6E2C10; box-shadow: 0 2px 6px rgba(43, 22, 8, 0.4); }
+.lbl .pip { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(43, 26, 16, 0.55); }
 .lbl svg { width: 16px; height: 16px; }
-.lbl.han { font-size: 11px; font-weight: 700; padding: 2px 7px; background: rgba(43, 29, 18, 0.5); }
-.lbl.han.own { border-color: var(--accent); color: #FFD9B0; }
-.lbl.eta { pointer-events: none; background: var(--accent); border-color: #E59144; font-size: 12px; }
-.lbl.warn { pointer-events: none; background: rgba(120, 30, 20, 0.75); font-size: 11px; }
+.lbl.han { font-family: var(--font); font-size: 12px; font-weight: 700; padding: 2px 7px; background: rgba(246, 233, 204, 0.8); letter-spacing: 0; }
+.lbl.han.own { background: #F6E1B8; border-color: var(--terra); color: #7E3414; }
+.lbl.eta { pointer-events: none; background: var(--indigo); color: #FFE3B8; border-color: #0D1024; font-family: var(--font); font-size: 13px; font-weight: 700; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
+.lbl.warn { pointer-events: none; background: #8E2A16; color: #FFE8DA; border-color: #4E1206; font-family: var(--font); font-size: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
 @media (pointer: coarse) { .lbl { min-height: 44px; padding: 8px 14px; } .lbl.han { min-height: 44px; } table.goods td { padding: 12px 4px; } .trade input[type=range] { height: 44px; } }
 
 /* screens + modals */
 .screen { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; }
-#title { background: radial-gradient(ellipse at 50% 40%, rgba(40, 26, 14, 0.25), rgba(25, 15, 6, 0.75)); }
-#title .box { width: min(560px, 100%); padding: 26px 26px 18px; text-align: center; max-height: 100%; overflow: auto; }
-#title .logo svg { width: 132px; height: 132px; }
-#title h1 { font-family: var(--display); font-weight: 400; font-size: 64px; margin: 4px 0 0; color: var(--gold); letter-spacing: .04em; line-height: 1; }
-#title .tag1 { color: var(--ink-dim); margin: 8px 0 14px; font-size: 16px; }
-#title .how { text-align: left; font-size: 14px; color: var(--ink-dim); background: rgba(255, 236, 205, 0.05); border-radius: 12px; padding: 10px 14px; margin: 0 0 14px; line-height: 1.5; }
+#title { background: radial-gradient(ellipse at 50% 45%, rgba(27, 31, 59, 0.05), rgba(27, 31, 59, 0.55)); }
+#title .box { position: relative; width: min(560px, 100%); padding: 26px 30px 18px; text-align: center; max-height: 100%; overflow: auto; }
+#title .box::before, #title .box::after { content: ''; position: absolute; width: 46px; height: 46px; pointer-events: none; border: 2px solid rgba(142, 59, 28, 0.55); }
+#title .box::before { left: 10px; top: 10px; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
+#title .box::after { right: 10px; bottom: 10px; border-left: none; border-top: none; border-radius: 0 0 8px 0; }
+#title .logo svg { width: 124px; height: 124px; filter: drop-shadow(0 3px 3px rgba(43, 22, 8, 0.3)); }
+#title h1 { font-family: var(--display); font-weight: 400; font-size: 66px; margin: 2px 0 0; color: #8E3B1C; letter-spacing: .06em; line-height: 1; }
+#title .tag1 { color: var(--ink-dim); margin: 8px 0 14px; font-size: 17px; font-style: italic; }
+#title .tag1::before, #title .tag1::after { content: ''; display: inline-block; width: 38px; border-top: 1px solid rgba(78, 53, 36, 0.5); vertical-align: middle; margin: 0 10px; }
+#title .how { text-align: left; font-size: 15px; color: var(--ink-dim); background: rgba(255, 250, 235, 0.45); border: 1px dashed rgba(78, 53, 36, 0.4); border-radius: 8px; padding: 10px 14px 10px 34px; margin: 0 0 14px; line-height: 1.5; }
 #title .how li { margin: 2px 0; }
-#title .menu { display: grid; gap: 8px; }
-#title .menu .btn { min-height: 48px; font-size: 16px; }
-#title .best { margin-top: 10px; font-size: 13px; color: var(--ink-mute); }
-#title .load { margin-top: 10px; font-size: 13px; color: var(--ink-mute); }
-.modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 12, 5, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.modal .box { width: min(520px, 100%); max-height: 100%; overflow: auto; padding: 22px; }
+#title .how li::marker { color: var(--terra); }
+#title .menu { display: grid; gap: 9px; }
+#title .menu .btn { min-height: 50px; font-size: 17px; }
+#title .best { margin-top: 10px; font-size: 14px; color: var(--ink-mute); }
+#title .load { margin-top: 10px; font-size: 14px; color: var(--ink-mute); }
+.modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(27, 31, 59, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.modal .box { width: min(520px, 100%); max-height: 100%; overflow: auto; padding: 24px; animation: pin .2s ease-out; }
 .modal .box.wide { width: min(760px, 100%); }
-.modal h2 { font-family: var(--display); font-weight: 400; color: var(--gold); margin: 0 0 12px; font-size: 32px; text-align: center; }
-.modal .menu { display: grid; gap: 8px; margin-top: 12px; }
-.modal .menu .btn { min-height: 48px; }
-.set { display: grid; grid-template-columns: 130px 1fr 44px; gap: 10px; align-items: center; margin: 10px 0; font-weight: 700; font-size: 14px; }
-.set input[type=range] { width: 100%; accent-color: var(--accent); height: 32px; }
+.modal h2 { font-family: var(--display); font-weight: 400; color: #8E3B1C; margin: 0 0 12px; font-size: 34px; text-align: center; letter-spacing: .03em; }
+.modal h2::after { content: ''; display: block; width: 120px; height: 7px; margin: 8px auto 0; background: radial-gradient(circle, #8E3B1C 2px, transparent 2.5px) center / 12px 7px repeat-x; opacity: .6; }
+.modal .menu { display: grid; gap: 9px; margin-top: 14px; }
+.modal .menu .btn { min-height: 48px; font-size: 16px; }
+.set { display: grid; grid-template-columns: 130px 1fr 44px; gap: 10px; align-items: center; margin: 10px 0; font-weight: 700; font-size: 15px; }
+.set input[type=range] { width: 100%; accent-color: var(--terra); height: 32px; }
 .stars { display: flex; justify-content: center; gap: 6px; margin: 4px 0 10px; }
-.stars svg { width: 44px; height: 44px; }
+.stars svg { width: 46px; height: 46px; }
 .bigstat { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 10px 0; }
-.bigstat div { background: rgba(255, 236, 205, 0.06); border-radius: 12px; padding: 10px; text-align: center; }
-.bigstat b { display: block; font-size: 22px; color: var(--ink); }
-.bigstat span { font-size: 12px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: .06em; }
-.record { text-align: center; color: var(--gold); font-weight: 800; letter-spacing: .1em; }
-canvas.chart { width: 100%; height: 180px; display: block; background: rgba(0, 0, 0, 0.12); border-radius: 12px; }
-.legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-dim); margin: 6px 0; }
+.bigstat div { background: rgba(255, 250, 235, 0.5); border: 1px solid var(--rule); border-radius: 8px; padding: 10px; text-align: center; }
+.bigstat b { display: block; font-size: 23px; color: var(--ink); font-family: var(--display); font-weight: 400; }
+.bigstat span { font-size: 12px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: .08em; }
+.record { text-align: center; color: #8E3B1C; font-weight: 800; letter-spacing: .14em; }
+canvas.chart { width: 100%; height: 180px; display: block; background: rgba(255, 250, 235, 0.45); border: 1px solid var(--rule); border-radius: 8px; }
+.legend { display: flex; gap: 14px; font-size: 13px; color: var(--ink-dim); margin: 6px 0; }
 .legend i { display: inline-block; width: 14px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 #debug { position: fixed; left: 10px; bottom: 90px; z-index: 60; font: 12px/1.4 ui-monospace, Consolas, monospace; background: rgba(0, 0, 0, 0.72); color: #9FE89A; padding: 8px 10px; border-radius: 8px; pointer-events: none; white-space: pre; max-width: 60vw; }
 #fatal { position: fixed; inset: auto 10px 10px 10px; z-index: 70; padding: 12px; color: #fff; background: #7A1E12; border-radius: 10px; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .panel, .modal, .modal .box, .toast { animation: none; } }
 
 @media (max-width: 760px) {
   #hud { top: 6px; left: 6px; right: 6px; flex-wrap: wrap; gap: 6px; padding: 6px; }
@@ -167,19 +204,35 @@ canvas.chart { width: 100%; height: 180px; display: block; background: rgba(0, 0
   #hud .brand svg { width: 30px; height: 30px; }
   #hud .stats { order: 3; width: 100%; justify-content: flex-start; gap: 4px; flex: 1 1 100%; }
   #hud .tools { margin-left: auto; gap: 4px; }
-  .chip { height: 30px; padding: 0 7px; font-size: 13px; }
+  .chip { height: 32px; padding: 0 8px; font-size: 14px; }
   .chip .sub { display: none; }
   .chip.opt { display: none; }
-  #toasts { top: 112px; }
-  .panel, .panel.right { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 56%; border-radius: 18px 18px 0 0; z-index: 25; }
-  #cvBar { bottom: 26px; }
+  #toasts { top: 116px; }
+  .panel, .panel.right { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 58%; border-radius: 16px 16px 0 0; z-index: 25; padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); }
+  #cvBar { bottom: 28px; }
   #hint { display: none; }
-  #title h1 { font-size: 48px; }
-  #title .logo svg { width: 96px; height: 96px; }
+  #title .box { padding: 22px 18px 16px; }
+  #title h1 { font-size: 50px; }
+  #title .logo svg { width: 92px; height: 92px; }
   .cols { grid-template-columns: 1fr; }
-  .set { grid-template-columns: 100px 1fr 40px; }
+  .set { grid-template-columns: 96px 1fr 40px; }
 }
-@media (max-width: 420px) { .seg .btn { padding: 0 6px; } #hud .tools .opt { display: none; } }
+@media (max-width: 420px) { .seg .btn, #hud .seg .btn { padding: 0 6px; } #hud .tools .opt { display: none; } }
+@media (max-height: 500px) and (min-width: 761px) {
+  #hud { top: 4px; left: 4px; right: 4px; padding: 4px 6px 4px 8px; gap: 6px; }
+  #hud .brand span, .chip .sub, .chip.opt, #hud .tools .opt { display: none; }
+  #hud .stats { justify-content: flex-start; gap: 4px; }
+  .chip { padding: 0 8px; }
+  #toasts { top: 62px; }
+  .panel, .panel.right { top: 60px; bottom: 4px; max-height: none; width: 360px; }
+  .panel.left { left: 4px; } .panel.right { right: 4px; width: 400px; }
+  #cvBar { bottom: 24px; }
+  #hint { display: none; }
+  #title .box { padding: 14px 22px 12px; }
+  #title .logo svg { width: 58px; height: 58px; } #title h1 { font-size: 40px; } #title .tag1 { margin: 4px 0 8px; } #title .how { display: none; }
+  #title .menu .btn { min-height: 44px; }
+  .modal .box { padding: 16px; } .modal h2 { font-size: 28px; margin-bottom: 6px; }
+}
 </style>
 </head>
 <body>
@@ -1100,7 +1153,7 @@ const { KervanSim, KervanBot, ECONOMY, GOODS, CITIES, CITY_IDS, ROADS, ROAD_BY_I
 const Q = new URLSearchParams(location.search);
 const FLAGS = { auto: Q.has('auto'), debug: Q.has('debug'), low: Q.has('low'), sim: +Q.get('sim') || 0, lang: Q.get('lang'), speed: +Q.get('speed') || 0, seed: +Q.get('seed') || 0, nosave: Q.has('nosave'), shot: Q.get('shot'), noassets: Q.has('noassets') };
 const MODEL = 'Claude Opus 5.5';
-const ACCENT = 0xB45309;
+const ACCENT = 0xB4532A;
 const loadEl = document.getElementById('tLoad');
 const setLoad = (n) => { if (loadEl) loadEl.textContent = (document.documentElement.lang === 'en' ? 'Loading… ' : 'Yükleniyor… ') + n + '/3'; };
 setLoad(1);
@@ -1115,7 +1168,7 @@ const store = {
   del(k) { try { localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } },
 };
 const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 620;
-const settings = Object.assign({ master: 0.8, music: 0.6, sfx: 0.8, lang: 'tr', quality: isPhone ? 'low' : 'high', musicOn: true, sfxOn: true, muted: false }, store.get(SKEY) || {});
+const settings = Object.assign({ master: 0.8, music: 0.6, sfx: 0.8, lang: /^tr/i.test(navigator.language || '') ? 'tr' : 'en', quality: isPhone ? 'low' : 'high', musicOn: true, sfxOn: true, muted: false }, store.get(SKEY) || {});
 if (FLAGS.lang) settings.lang = FLAGS.lang === 'en' ? 'en' : 'tr';
 const saveSettings = () => store.set(SKEY, settings);
 const lowQ = () => FLAGS.low || settings.quality === 'low';
@@ -1157,8 +1210,17 @@ function roadDist(x, z) {
 const coastX = (z) => -110 + Math.sin(z * 0.05) * 5 + Math.sin(z * 0.13 + 1.3) * 3 + (z > 10 && z < 26 ? 4 : 0);
 const LAKE = { x: -14, z: -26, rx: 17, rz: 9.5 };
 const ERCIYES = { x: 104, z: -62 };
+const desertF = (x, z) => sstep(20, 70, (x - 55) * 0.7 + (z - 10) * 0.9);
+// oases in the eastern desert: a palm ring around a small pond (kept clear of roads and cities)
+const OASES = [[118, 28], [112, 66], [66, 71], [88, 72]].filter(([x, z]) => roadDist(x, z) > 9 && CITY_IDS.every((id) => Math.hypot(x - CITIES[id].x, z - CITIES[id].z) > 20));
 function rawH(x, z) {
   let h = 1.1 + fbm(x * 0.035 + 3, z * 0.035 + 7) * 2.6;
+  const dsr = sstep(28, 72, (x - 55) * 0.7 + (z - 10) * 0.9);
+  if (dsr > 0) { // wind-built dune ridges
+    const w = (x * 0.75 + z * 0.45) * 0.16 + fbm(x * 0.05, z * 0.05) * 2.5;
+    h += dsr * Math.pow(1 - Math.abs(Math.sin(w)), 2.5) * 2.6;
+  }
+  for (const [ox, oz] of OASES) { const d = Math.hypot(x - ox, z - oz); if (d < 12) h = lerp(1.0, h, sstep(5, 11, d)); }
   h += sstep(-38, -78, z) * fbm(x * 0.06 + 2, z * 0.06) * 5.5;                // northern hills
   let m = Math.max(0, 1 - distPoly(x, z, MOUNT_PTS) / 21); m = m * m * (3 - 2 * m);
   m *= 0.12 + 0.88 * sstep(3, 15, distPoly(x, z, PASS_PTS));                  // the pass
@@ -1205,11 +1267,13 @@ renderer.shadowMap.enabled = !lowQ();
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.shadowMap.autoUpdate = false;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+// art direction (2026-11 redesign): Silk Road travel journal. dune, terracotta, oasis, night indigo, lantern
+const PALETTE = { dune: '#E0B97A', terra: '#B4532A', oasis: '#2F8F6B', indigo: '#1B1F3B', lantern: '#FFB347', ink: '#2B1A10', parchment: '#F3E4C4' };
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#E5C597');
-scene.fog = new THREE.Fog('#E5C597', 260, 620);
-const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 1, 1200);
-const hemi = new THREE.HemisphereLight('#FFE6C2', '#6E5638', 1.25);
+scene.background = new THREE.Color('#F0CF9A');
+scene.fog = new THREE.Fog('#F0CF9A', 300, 760);
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 1, 1400);
+const hemi = new THREE.HemisphereLight('#FFE7C4', '#7A5434', 1.25);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight('#FFD49A', 2.6);
 sun.castShadow = true;
@@ -1218,8 +1282,31 @@ Object.assign(sun.shadow.camera, { left: -135, right: 135, top: 92, bottom: -92,
 sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.35;
 scene.add(sun, sun.target);
 
-const matClay = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
-const matInst = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+// shared look for every Lambert material: a warm rim light on the silhouettes and drifting cloud shadows on the ground
+// (world-space value noise, no texture). One set of uniforms, updated once per frame in updateLight().
+const FX = { uTime: { value: 0 }, uRim: { value: new THREE.Color('#FFC27A') }, uCloud: { value: 0.16 }, uTint: { value: new THREE.Color(1, 1, 1) } };
+const FX_VERT_HEAD = 'varying vec3 vKWP;\n';
+const FX_VERT = '\n  { vec4 kwp = vec4(transformed, 1.0);\n  #ifdef USE_INSTANCING\n  kwp = instanceMatrix * kwp;\n  #endif\n  vKWP = (modelMatrix * kwp).xyz; }';
+const FX_FRAG_HEAD = 'uniform float uTime; uniform vec3 uRim; uniform float uCloud; uniform vec3 uTint; varying vec3 vKWP;\n' +
+  'float kHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }\n' +
+  'float kNoise(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);\n' +
+  '  return mix(mix(kHash(i), kHash(i + vec2(1.0, 0.0)), u.x), mix(kHash(i + vec2(0.0, 1.0)), kHash(i + vec2(1.0, 1.0)), u.x), u.y); }\n';
+const FX_FRAG_CLOUD = '\n  { vec2 cp = vKWP.xz * 0.018 + uTime * vec2(0.012, 0.005);\n' +
+  '  float cl = kNoise(cp) * 0.65 + kNoise(cp * 2.3 + 7.1) * 0.35;\n  diffuseColor.rgb *= (1.0 - uCloud * smoothstep(0.52, 0.72, cl)) * uTint; }';
+const FX_FRAG_RIM = '\n  { float rim = 1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0);\n  outgoingLight += uRim * (rim * rim * rim) * diffuseColor.rgb; }';
+function stylize(mat, key, extra) {
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, FX);
+    sh.vertexShader = FX_VERT_HEAD + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>' + FX_VERT);
+    sh.fragmentShader = FX_FRAG_HEAD + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>' + FX_FRAG_CLOUD)
+      .replace('#include <opaque_fragment>', FX_FRAG_RIM + '\n  #include <opaque_fragment>');
+    if (extra) extra(sh);
+  };
+  mat.customProgramCacheKey = () => 'kervan-fx-' + key;
+  return mat;
+}
+const matClay = stylize(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }), 'clay');
+const matInst = stylize(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }), 'clay');
 const col = new THREE.Color(), col2 = new THREE.Color();
 
 // ------------------------------------------------------------------------------------------------
@@ -1297,8 +1384,9 @@ function buildTerrain() {
       let cx = 0, cz = 0, ch = 0;
       tri.forEach(([a, b], k) => { const x = vx(a), z = vz(b), h = H(a, b); pos[t * 9 + k * 3] = x; pos[t * 9 + k * 3 + 1] = h; pos[t * 9 + k * 3 + 2] = z; cx += x; cz += z; ch += h; });
       cx /= 3; cz /= 3; ch /= 3;
-      const wet = 1 - sstep(3, 14, distPoly(cx, cz, RIVER_PTS));
-      const desert = sstep(20, 70, (cx - 55) * 0.7 + (cz - 10) * 0.9);
+      let wet = 1 - sstep(3, 14, distPoly(cx, cz, RIVER_PTS));
+      for (const [ox, oz] of OASES) wet = Math.max(wet, 1 - sstep(6, 13, Math.hypot(cx - ox, cz - oz)));
+      const desert = desertF(cx, cz) * (1 - wet * 0.85);
       const tuff = 1 - sstep(8, 22, Math.hypot(cx - CITIES.goreme.x, cz - CITIES.goreme.z));
       const coast = sstep(coastX(cz) + 14, coastX(cz) + 4, cx);
       const lake = 1 - sstep(1.0, 1.8, ((cx - LAKE.x) / LAKE.rx) ** 2 + ((cz - LAKE.z) / LAKE.rz) ** 2);
@@ -1316,22 +1404,34 @@ function buildTerrain() {
   scene.add(m);
 }
 const PAL = {
-  grassA: new THREE.Color('#CDAA5E'), grassB: new THREE.Color('#9FA552'), spring: new THREE.Color('#86AC48'), autumn: new THREE.Color('#C98443'),
-  winter: new THREE.Color('#E6E8E6'), wet: new THREE.Color('#6E9C46'), sand: new THREE.Color('#E2C184'), tuff: new THREE.Color('#E0BBA0'),
-  rock: new THREE.Color('#9C866B'), rock2: new THREE.Color('#857463'), snow: new THREE.Color('#F5F2EC'), beach: new THREE.Color('#E6D3A0'),
-  salt: new THREE.Color('#F0ECE3'), bed: new THREE.Color('#8FA596'),
+  grassA: new THREE.Color('#DDB167'), grassB: new THREE.Color('#BCA45B'), spring: new THREE.Color('#A2B556'), autumn: new THREE.Color('#D08A45'),
+  winter: new THREE.Color('#E9E6E0'), wet: new THREE.Color('#3E9566'), sand: new THREE.Color('#E6BE80'), tuff: new THREE.Color('#E8BE9C'),
+  rock: new THREE.Color('#A97E5E'), rock2: new THREE.Color('#8C6650'), snow: new THREE.Color('#F7F4EE'), beach: new THREE.Color('#EED9A4'),
+  salt: new THREE.Color('#F3EEE4'), bed: new THREE.Color('#78A397'), strata: new THREE.Color('#B4532A'), crest: new THREE.Color('#F2D59C'),
 };
 function paintTerrain(season) {
   const info = world.tri, colors = world.terrain.geometry.attributes.color.array, n = info.length / 6;
+  const nrm = world.terrain.geometry.attributes.normal.array;
   for (let t = 0; t < n; t++) {
     const h = info[t * 6], wet = info[t * 6 + 1], desert = info[t * 6 + 2], tuff = info[t * 6 + 3], nz = info[t * 6 + 4], shore = info[t * 6 + 5];
     col.copy(PAL.grassA).lerp(PAL.grassB, sstep(0.3, 0.75, nz));
-    if (season === 0) col.lerp(PAL.spring, 0.5); else if (season === 2) col.lerp(PAL.autumn, 0.26); else if (season === 3) col.lerp(PAL.winter, 0.66);
-    if (wet > 0 && season !== 3) col.lerp(PAL.wet, wet * 0.55);
-    if (desert > 0) col.lerp(PAL.sand, desert * (season === 3 ? 0.7 : 0.92));
+    col.lerp(PAL.sand, sstep(0.62, 0.9, nz) * 0.35);
+    if (season === 0) col.lerp(PAL.spring, 0.34); else if (season === 2) col.lerp(PAL.autumn, 0.26); else if (season === 3) col.lerp(PAL.winter, 0.66);
+    if (wet > 0 && season !== 3) col.lerp(PAL.wet, wet * 0.6);
+    if (desert > 0) {
+      col.lerp(PAL.sand, desert * (season === 3 ? 0.7 : 0.92));
+      // dune crests catch the light: triangles facing the low western sun are paler
+      const lit = nrm[t * 9] * -0.7 + nrm[t * 9 + 1] * 0.3;
+      if (season !== 3) col.lerp(PAL.crest, desert * sstep(0.18, 0.45, lit) * 0.6);
+    }
     if (tuff > 0) col.lerp(PAL.tuff, tuff * 0.8);
     const rockF = sstep(4.5, 9.5, h);
-    if (rockF > 0) col.lerp(nz > 0.5 ? PAL.rock : PAL.rock2, rockF * 0.85);
+    if (rockF > 0) {
+      col.lerp(nz > 0.5 ? PAL.rock : PAL.rock2, rockF * 0.85);
+      // terracotta sandstone strata banding the mountains
+      const band = sstep(0.62, 0.8, Math.abs(Math.sin(h * 0.9 + nz * 1.4)));
+      col.lerp(PAL.strata, rockF * band * 0.45);
+    }
     const snowLine = season === 3 ? 6.5 : season === 0 ? 14 : 18.5;
     if (h > snowLine) col.lerp(PAL.snow, sstep(snowLine, snowLine + 2.5, h));
     if (shore >= 2 && h < 1.2) col.lerp(PAL.salt, 0.8);
@@ -1346,7 +1446,7 @@ function paintTerrain(season) {
 function buildBoardEdge() {
   // cut-away "cake" sides of the tabletop board and the table under it
   const b = new Builder();
-  const layers = [[0, '#7B5A3A'], [-2.2, '#9A6B42'], [-4.6, '#7E5536'], [-7, '#5E3F28']];
+  const layers = [[0, '#9A5A34'], [-1.6, '#C98A52'], [-3.1, '#B4532A'], [-4.4, '#D9A468'], [-5.9, '#9E4A26'], [-7.4, '#C0884F']];
   const edge = (pts) => {
     for (let i = 0; i < pts.length - 1; i++) {
       const [x0, z0] = pts[i], [x1, z1] = pts[i + 1];
@@ -1365,14 +1465,58 @@ function buildBoardEdge() {
   edge(line(-hx, hz, hx, hz)); edge(line(hx, hz, hx, -hz)); edge(line(hx, -hz, -hx, -hz)); edge(line(-hx, -hz, -hx, hz));
   const m = b.mesh(); m.castShadow = false;
   scene.add(m);
-  const table = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1000).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: '#4A3020' }));
-  table.position.y = -9.05; table.receiveShadow = true;
-  scene.add(table);
+  // the plateau rises out of a dune sea (east) and a shallow turquoise sea (west): one merged, vertex-coloured mesh
+  const g = new THREE.PlaneGeometry(1500, 1100, 90, 66).rotateX(-Math.PI / 2).toNonIndexed();
+  const p = g.attributes.position, dcol = [];
+  const duneA = new THREE.Color('#E0B97A'), duneB = new THREE.Color('#C98E55'), duneC = new THREE.Color('#F0D29A'), seaC = new THREE.Color('#2E8E93');
+  const duneH = (x, z) => {
+    const w = (x * 0.8 + z * 0.55) * 0.045 + fbm(x * 0.012, z * 0.012) * 4;
+    const ridge = 1 - Math.abs(Math.sin(w));
+    return -10.5 + Math.pow(ridge, 2.2) * 5.5 + fbm(x * 0.03 + 3, z * 0.03) * 2.2;
+  };
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), z = p.getZ(i);
+    // west of the coast the ground dips under the sea; near the board the dunes bank against the cliffs
+    const sea = sstep(-150, -230, x + Math.sin(z * 0.02) * 20);
+    const bx = Math.max(0, Math.abs(x) - BW / 2), bz = Math.max(0, Math.abs(z) - BD / 2), bd = Math.hypot(bx, bz);
+    let h = duneH(x, z) + (1 - sstep(0, 40, bd)) * 2.5;
+    h = lerp(h, -16, sea);
+    if (bd === 0) h = Math.min(h, -7);
+    p.setY(i, h);
+  }
+  g.computeVertexNormals();
+  const nr = g.attributes.normal;
+  for (let i = 0; i < p.count; i += 3) {
+    const x = (p.getX(i) + p.getX(i + 1) + p.getX(i + 2)) / 3, z = (p.getZ(i) + p.getZ(i + 1) + p.getZ(i + 2)) / 3, h = (p.getY(i) + p.getY(i + 1) + p.getY(i + 2)) / 3;
+    const lit = nr.getX(i) * -0.75 + nr.getY(i) * 0.25;
+    col.copy(duneA).lerp(duneB, sstep(0.1, -0.35, lit) * 0.8).lerp(duneC, sstep(0.15, 0.45, lit) * 0.7);
+    if (h < -12.5) col.lerp(seaC, 0.9);
+    const k = 0.96 + hash2(x * 0.3, z * 0.7) * 0.07;
+    for (let v = 0; v < 3; v++) dcol.push(col.r * k, col.g * k, col.b * k);
+  }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(dcol, 3));
+  // triangles hidden under the board are collapsed (no fragments), and the dunes draw after the board so the
+  // depth test rejects what the plateau covers: the dune sea costs almost nothing on the iGPU
+  const inside = (x, z) => Math.abs(x) < BW / 2 - 2 && Math.abs(z) < BD / 2 - 2;
+  for (let i = 0; i < p.count; i += 3) {
+    if (inside(p.getX(i), p.getZ(i)) && inside(p.getX(i + 1), p.getZ(i + 1)) && inside(p.getX(i + 2), p.getZ(i + 2))) {
+      for (let v = 1; v < 3; v++) p.setXYZ(i + v, p.getX(i), p.getY(i), p.getZ(i));
+    }
+  }
+  const dunes = new THREE.Mesh(g, matClay);
+  dunes.receiveShadow = true; dunes.renderOrder = 1;
+  scene.add(dunes);
+  world.dunes = dunes;
+  // the outer sea surface, just under the cliffs on the west
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(700, 1100).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: '#2B8C93', transparent: true, opacity: 0.88 }));
+  sea.position.set(-BW / 2 - 350, -12.2, 0);
+  scene.add(sea); world.outerSea = sea;
 }
 
+const WATER_COL = '#2E8E93';
 function buildWater() {
   const geo = new THREE.PlaneGeometry(BW, BD, 1, 1).rotateX(-Math.PI / 2);
-  world.water = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: '#3F8EA6', roughness: 0.3, metalness: 0.0 }));
+  world.water = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: WATER_COL, roughness: 0.3, metalness: 0.0 }));
   world.water.position.y = 0.05; world.water.receiveShadow = true;
   scene.add(world.water);
   const lake = new THREE.Mesh(new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#E9DDD8', roughness: 0.4 }));
@@ -1419,7 +1563,7 @@ function buildRoads() {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
   g.computeVertexNormals();
-  const mat = new THREE.MeshLambertMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const mat = stylize(new THREE.MeshLambertMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), 'road');
   world.roads = new THREE.Mesh(g, mat);
   world.roads.receiveShadow = true;
   world.roadBase = Float32Array.from(cols);
@@ -1640,6 +1784,16 @@ function buildStatics() {
     f.add(BOX(), '#A99272', 0, 1.2, 1.25, 9, 0.45, 0.25); f.add(BOX(), '#A99272', 0, 1.2, -1.25, 9, 0.45, 0.25);
     for (const k of [-2.5, 0, 2.5]) { f.add(BOX(), '#A9906C', k, -1, 0, 0.9, 1.8, 2.4); }
   }
+  // oases: pond, reed ring, palms and a well
+  for (const [ox, oz] of OASES) {
+    b.add(CYL(14), '#2E8E93', ox, 1.0, oz, 4.3, 0.1, 3.6);
+    b.add(CYL(14), '#6E9A4A', ox, 0.95, oz, 5.0, 0.1, 4.3);
+    for (let i = 0; i < 7; i++) { const a = i / 7 * 6.28 + rr(-0.3, 0.3), r = rr(5.6, 8.5); palm(b, ox + Math.cos(a) * r, oz + Math.sin(a) * r); }
+    for (let i = 0; i < 10; i++) { const a = rnd() * 6.28; b.add(CONE(4), '#5F8A3C', ox + Math.cos(a) * 4.6, 1.0, oz + Math.sin(a) * 3.9, 0.25, rr(0.7, 1.2), 0.25); }
+    const wx = ox + 6.5, wz = oz - 2;
+    b.add(CYL(8), '#C9A877', wx, sampleH(wx, wz) - 0.1, wz, 0.7, 0.7, 0.7); b.add(CYL(8), '#2A3A3A', wx, sampleH(wx, wz) + 0.55, wz, 0.5, 0.05, 0.5);
+    lanternAt(wx, wz, null, 0.8);
+  }
   // the closed-pass marker posts (visible all year, gate shown in winter by label)
   const pass = pointAt(ROAD_BY_ID.r8.pts, ROAD_BY_ID.r8.cum, ROAD_BY_ID.r8.len * 0.42);
   world.passPoint = pass;
@@ -1695,6 +1849,17 @@ function buildHan(id, level) {
   f.add(BOX(), flag, 0.75, Hh + 3.25, S / 2 + 0.2, 1.4, 0.75, 0.06);
   if (level > 0) for (const k of [-1.1, 1.1]) f.add(BOX(), flag, k, 0.9, S / 2 + 0.97, 0.5, 1.6, 0.05);
   }
+  // blind arcades on the outer walls: terracotta frames around dark round-headed niches (both render paths)
+  const niche = (x, z, ry) => {
+    const c = Math.cos(ry), s = Math.sin(ry);
+    const P = (lx, ly, lz, sx, sy, sz, colr, geo, rx = 0) => f.add(geo, colr, x + lx * c + lz * s, ly, z - lx * s + lz * c, sx, sy, sz, ry, rx);
+    P(0, 0.42, 0, 1.12, 1.62, 0.05, '#B4532A', BOX());
+    P(0, 1.55, 0, 0.56, 0.06, 0.56, '#B4532A', CYL(10), Math.PI / 2);
+    P(0, 0.5, 0.03, 0.78, 1.08, 0.05, '#3E2618', BOX());
+    P(0, 1.58, 0.03, 0.39, 0.07, 0.39, '#3E2618', CYL(10), Math.PI / 2);
+  };
+  for (const sx of [-1, 1]) for (const z of [-3.7, -0.3, 3.3]) niche(sx * (S / 2 + 0.41), z, sx * Math.PI / 2);
+  for (const x of [-2.2, 2.2]) niche(x, -S / 2 - 0.41, Math.PI);
   const m = b.mesh();
   scene.add(m);
   world.hans[id] = m;
@@ -1755,7 +1920,7 @@ function buildTrees() {
   while (rocks.length < (lowQ() ? 70 : 140) && tries++ < 8000) {
     const x = rr(-BW / 2 + 3, BW / 2 - 3), z = rr(-BD / 2 + 3, BD / 2 - 3), h = sampleH(x, z);
     const desert = sstep(20, 70, (x - 55) * 0.7 + (z - 10) * 0.9);
-    if (h < 0.8 || roadDist(x, z) < 3) continue;
+    if (h < 0.8 || roadDist(x, z) < 3 || OASES.some(([ox, oz]) => Math.hypot(x - ox, z - oz) < 9)) continue;
     if (h < 5 && desert < 0.4 && rnd() > 0.08) continue;
     rocks.push([x, h, z, rr(0.5, 1.6)]);
   }
@@ -1977,7 +2142,7 @@ const ICON = {
   sun: sv('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>'),
   moon: sv('<path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/>'),
   star: sv('<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2 6.4 20.2l1.1-6.3L2.9 9.5l6.3-.9z" fill="#E9B65C" stroke="#B45309"/>'),
-  starOff: sv('<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2 6.4 20.2l1.1-6.3L2.9 9.5l6.3-.9z" fill="rgba(255,236,205,.08)" stroke="#8A7558"/>'),
+  starOff: sv('<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2 6.4 20.2l1.1-6.3L2.9 9.5l6.3-.9z" fill="rgba(43,26,16,.06)" stroke="#9A7A58"/>'),
   plague: sv('<circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21M5.6 5.6l3.2 3.2M15.2 15.2l3.2 3.2M5.6 18.4l3.2-3.2M15.2 8.8l3.2-3.2"/>', '0 0 24 24', 'style="color:#C4E07A"'),
   festival: sv('<path d="M4 20l5-13 8 8z"/><path d="M14 4l1 2M19 6l-2 1M20 11l-2-.5M11 3.5l.3 2"/>', '0 0 24 24', 'style="color:#F4C25B"'),
   bandit: sv('<path d="M12 3c-4 0-7 3-7 7v2h14v-2c0-4-3-7-7-7z"/><path d="M5 12l2 8h10l2-8"/><path d="M8.5 9.5h2M13.5 9.5h2"/>', '0 0 24 24', 'style="color:#F08A6A"'),
@@ -2214,16 +2379,30 @@ const Sound = {
 // caravans, bandits and markers (instanced, updated every frame)
 // ------------------------------------------------------------------------------------------------
 function camelGeo() {
-  const b = new Builder();
-  b.add(BOX(), '#C49A63', -0.05, 0.95, 0, 1.9, 0.8, 0.74);
-  b.add(ICO(), '#BE925A', -0.1, 1.8, 0, 0.58, 0.42, 0.4);
-  b.add(BOX(), '#C49A63', 1.0, 1.25, 0, 0.36, 1.05, 0.32, 0, 0, -0.55);
-  b.add(BOX(), '#B88B55', 1.42, 2.02, 0, 0.62, 0.32, 0.3);
-  b.add(BOX(), '#8E2F25', -0.1, 1.72, 0, 0.9, 0.08, 0.9);
-  b.add(BOX(), '#A87E4B', -1.05, 1.0, 0, 0.12, 0.6, 0.1, 0, 0, 0.3);
+  // rounded low-poly dromedary: barrel body, tall hump, S-curved neck, long head, saddle blanket with tassels
+  const b = new Builder(), fur = '#C99A5E', fur2 = '#B78550', dark = '#3A2414';
+  b.add(ICO(), fur, -0.05, 1.32, 0, 1.02, 0.5, 0.42);
+  b.add(ICO(), fur2, -0.12, 1.72, 0, 0.55, 0.5, 0.36);
+  b.add(BOX(), fur, 0.82, 1.05, 0, 0.3, 0.62, 0.28, 0, 0, -0.95);
+  b.add(BOX(), fur, 1.25, 1.42, 0, 0.26, 0.72, 0.24, 0, 0, -0.18);
+  b.add(BOX(), fur2, 1.5, 2.08, 0, 0.62, 0.28, 0.26);
+  b.add(BOX(), '#9C6E42', 1.79, 2.02, 0, 0.18, 0.2, 0.22);
+  for (const s of [-1, 1]) { b.add(BOX(), fur2, 1.28, 2.32, s * 0.09, 0.08, 0.14, 0.05); b.add(BOX(), dark, 1.6, 2.2, s * 0.13, 0.06, 0.06, 0.02); }
+  b.add(BOX(), fur2, -1.02, 1.28, 0, 0.1, 0.62, 0.08, 0, 0, 0.35);
+  // saddle blanket (terracotta with an ochre band) and its tassels
+  b.add(BOX(), '#B4532A', -0.1, 1.55, 0, 1.0, 0.1, 0.98);
+  b.add(BOX(), '#E0A84E', -0.1, 1.56, 0, 1.04, 0.06, 0.6);
+  for (const s of [-1, 1]) for (let i = 0; i < 4; i++) b.add(BOX(), i % 2 ? '#2F8F6B' : '#E0A84E', -0.5 + i * 0.27, 1.12, s * 0.5, 0.06, 0.32, 0.06);
   return b.geometry();
 }
-function legGeo() { const b = new Builder(); b.add(BOX(), '#B48A55', 0, -1.0, 0, 0.2, 1.0, 0.2); return b.geometry(); }
+function legGeo() {
+  const b = new Builder();
+  b.add(BOX(), '#BD8E57', 0, -0.55, 0, 0.24, 0.55, 0.24);          // thigh
+  b.add(BOX(), '#A97A47', 0, -0.62, 0, 0.27, 0.12, 0.27);          // knee pad
+  b.add(BOX(), '#B48A55', 0.02, -1.0, 0, 0.15, 0.45, 0.15);        // shin
+  b.add(BOX(), '#6E4A2C', 0.05, -1.0, 0, 0.26, 0.07, 0.22);        // foot
+  return b.geometry();
+}
 function bundleGeo() {
   const b = new Builder();
   b.add(BOX(), '#FFFFFF', -0.1, 1.55, 0.5, 0.95, 0.62, 0.36); b.add(BOX(), '#FFFFFF', -0.1, 1.55, -0.5, 0.95, 0.62, 0.36);
@@ -2255,6 +2434,17 @@ function banditGeos() {
   const fig = new Builder(); fig.add(CYL(6), '#2B2224', 0, 0, 0, 0.3, 1.25, 0.3); fig.add(ICO(), '#6E2A22', 0, 1.45, 0, 0.26, 0.24, 0.26); fig.add(BOX(), '#8C8C8C', 0.32, 0.5, 0, 0.06, 1.3, 0.06, 0, 0, 0.3);
   return [tent.geometry(), fig.geometry()];
 }
+function campGeo() {
+  // night camp: a striped nomad tent, a ring of stones and crossed logs (the fire itself is a lantern sprite + embers)
+  const b = new Builder();
+  b.add(CONE(4), '#B4532A', -1.6, 0, 0, 1.5, 1.6, 1.2, Math.PI / 4);
+  b.add(CONE(4), '#F1DDB4', -1.6, 0.55, 0, 1.08, 1.06, 0.86, Math.PI / 4);
+  b.add(CONE(4), '#B4532A', -1.6, 1.0, 0, 0.62, 0.6, 0.5, Math.PI / 4);
+  b.add(BOX(), '#3E2618', -0.55, 0, 0, 0.06, 0.8, 0.5);
+  for (let i = 0; i < 7; i++) { const a = i / 7 * 6.28; b.add(ICO(), '#8C7A66', Math.cos(a) * 0.55, 0.05, Math.sin(a) * 0.55, 0.16, 0.12, 0.16); }
+  b.add(BOX(), '#5A3A22', 0, 0.05, 0, 0.9, 0.1, 0.12, 0.5); b.add(BOX(), '#5A3A22', 0, 0.1, 0, 0.9, 0.1, 0.12, -0.6);
+  return b.geometry();
+}
 const R = {}; // render state
 function inst(geo, n, colored) {
   const m = new THREE.InstancedMesh(geo, matInst, n);
@@ -2267,33 +2457,50 @@ function buildDynamic() {
   R.camels = inst(camelGeo(), 110); R.legs = inst(legGeo(), 440); R.bundles = inst(bundleGeo(), 110, true);
   R.horses = inst(horseGeo(true), 12); R.ghorses = inst(horseGeo(false), 40); R.cloaks = inst(cloakGeo(), 12, true); R.guards = inst(guardGeo(), 40);
   const [tg, fg] = banditGeos(); R.tents = inst(tg, 12); R.bandits = inst(fg, 36);
+  R.camps = inst(campGeo(), 12);
   const ring = (r0, r1, op) => { const m = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: op, depthWrite: false })); m.visible = false; m.renderOrder = 2; scene.add(m); return m; };
   R.selRing = ring(1.7, 2.3, 0.95); R.cityRing = ring(12.5, 13.4, 0.75); R.hoverRing = ring(12.5, 13.1, 0.4);
   const rg = new THREE.BufferGeometry();
   rg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6000 * 3), 3));
-  R.route = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
+  R.route = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ color: '#7A2E12', transparent: true, opacity: 0.92, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
   R.route.frustumCulled = false; R.route.visible = false; R.route.renderOrder = 3; scene.add(R.route);
   const pg = new THREE.BufferGeometry();
   pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6000 * 3), 3));
-  R.preview = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ color: '#F3C46E', transparent: true, opacity: 0.55, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
+  R.preview = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ color: '#2B1A10', transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
   R.preview.frustumCulled = false; R.preview.visible = false; R.preview.renderOrder = 3; scene.add(R.preview);
   R.lanterns = makePoints(world.lanterns.length + 14 + 24, true);
   R.dust = makePoints(lowQ() ? 110 : 220, false); R.dustLife = new Float32Array(R.dust.userData.n); R.dustVel = new Float32Array(R.dust.userData.n * 3); R.dustNext = 0;
+  // wind-blown sand skimming the ground, densest over the dunes
+  R.sand = makePoints(lowQ() ? 140 : 280, false); R.sandLife = new Float32Array(R.sand.userData.n);
+  // embers rising from camp fires and bandit fires
+  R.embers = makePoints(lowQ() ? 40 : 80, true); R.emberLife = new Float32Array(R.embers.userData.n); R.emberNext = 0;
   R.snow = makePoints(lowQ() ? 350 : 700, false); R.snow.visible = false;
   const sp = R.snow.geometry.attributes;
   for (let i = 0; i < R.snow.userData.n; i++) { sp.position.setXYZ(i, rr(-80, 80), rr(0, 60), rr(-60, 60)); sp.pcolor.setXYZ(i, 1, 1, 1); sp.psize.setX(i, rr(0.35, 0.7)); sp.palpha.setX(i, rr(0.6, 0.95)); }
   sp.position.needsUpdate = true;
 }
 function ribbon(mesh, pts, fromIdx, startPt) {
-  const pos = mesh.geometry.attributes.position, arr = pos.array, w = 0.55;
-  let n = 0;
+  // an inked route on the map: dashes (2.2 on, 1.3 off) that march slowly toward the destination
+  const pos = mesh.geometry.attributes.position, arr = pos.array, w = 0.42, DASH = 3.5, ON = 2.2;
+  const shift = (performance.now() / 1000 * 1.6) % DASH;
+  let n = 0, s = 0;
   const list = startPt ? [startPt, ...pts.slice(fromIdx)] : pts.slice(fromIdx);
-  for (let i = 0; i < list.length - 1 && n < 5990; i++) {
-    const [x0, z0] = list[i], [x1, z1] = list[i + 1];
+  const quad = (x0, z0, x1, z1) => {
     const dx = x1 - x0, dz = z1 - z0, l = Math.hypot(dx, dz) || 1, nx = -dz / l * w, nz = dx / l * w;
     const y0 = roadY(x0, z0) + 0.32, y1 = roadY(x1, z1) + 0.32;
     const q = [[x0 + nx, y0, z0 + nz], [x0 - nx, y0, z0 - nz], [x1 + nx, y1, z1 + nz], [x1 + nx, y1, z1 + nz], [x0 - nx, y0, z0 - nz], [x1 - nx, y1, z1 - nz]];
     for (const p of q) { arr[n * 3] = p[0]; arr[n * 3 + 1] = p[1]; arr[n * 3 + 2] = p[2]; n++; }
+  };
+  for (let i = 0; i < list.length - 1 && n < 5990; i++) {
+    const [x0, z0] = list[i], [x1, z1] = list[i + 1], L = Math.hypot(x1 - x0, z1 - z0);
+    let a = 0;
+    while (a < L && n < 5990) {
+      const ph = (s + a - shift + DASH * 100) % DASH, on = ph < ON;
+      const step = Math.min(L - a, on ? ON - ph : DASH - ph);
+      if (on && step > 0.05) quad(lerp(x0, x1, a / L), lerp(z0, z1, a / L), lerp(x0, x1, (a + step) / L), lerp(z0, z1, (a + step) / L));
+      a += Math.max(step, 0.01);
+    }
+    s += L;
   }
   mesh.geometry.setDrawRange(0, n);
   pos.needsUpdate = true;
@@ -2350,8 +2557,8 @@ function cargoSlots(cv) {
   return slots;
 }
 const _yAxis = new THREE.Vector3(0, 1, 0);
-function setInst(mesh, i, x, y, z, dir, sc = 1, tilt = 0) {
-  _e.set(0, -dir, tilt, 'YXZ'); _q.setFromEuler(_e);
+function setInst(mesh, i, x, y, z, dir, sc = 1, tilt = 0, roll = 0) {
+  _e.set(roll, -dir, tilt, 'YXZ'); _q.setFromEuler(_e);
   _m4.compose(_v.set(x, y, z), _q, _s.set(sc, sc, sc));
   mesh.setMatrixAt(i, _m4);
 }
@@ -2359,7 +2566,7 @@ const LEG_OFF = [[0.72, 0.24], [0.72, -0.24], [-0.72, 0.24], [-0.72, -0.24]];
 const _leg = new THREE.Matrix4(), _base = new THREE.Matrix4();
 function updateCaravans(time) {
   const S = sim.S;
-  let nCam = 0, nLeg = 0, nB = 0, nH = 0, nGH = 0, nCl = 0, nG = 0;
+  let nCam = 0, nLeg = 0, nB = 0, nH = 0, nGH = 0, nCl = 0, nG = 0, nCamp = 0;
   R.camp = [];
   const SC = CV_SCALE;
   for (const cv of S.caravans) {
@@ -2378,11 +2585,14 @@ function updateCaravans(time) {
     M.camels.forEach((p, i) => {
       if (nCam >= 110) return;
       const y = sampleH(p.x, p.z);
-      const b2 = M.moving ? Math.abs(Math.sin(phase * 2 + i * 1.3)) * 0.08 : 0;
-      setInst(R.camels, nCam, p.x, y + b2, p.z, p.dir, SC);
+      // camels pace: both legs on one side swing together, so the body rolls side to side and the neck pumps
+      const ph = phase * 2 + i * 1.3;
+      const b2 = M.moving ? Math.abs(Math.sin(ph)) * 0.08 : Math.sin(time * 0.8 + i) * 0.01;
+      const roll = M.moving ? Math.sin(ph) * 0.06 : 0, pitch = M.moving ? Math.sin(ph * 2) * 0.025 : 0;
+      setInst(R.camels, nCam, p.x, y + b2, p.z, p.dir, SC, pitch, roll);
       _base.copy(_m4);
       for (let k = 0; k < 4; k++) {
-        const sw = M.moving ? Math.sin(phase * 2 + i * 1.3 + (k === 0 || k === 3 ? 0 : Math.PI)) * 0.5 : 0;
+        const sw = M.moving ? Math.sin(ph + (k === 0 || k === 2 ? 0 : Math.PI)) * 0.5 : 0;
         _leg.compose(_v.set(LEG_OFF[k][0], 1.0, LEG_OFF[k][1]), _q.setFromAxisAngle(_v2.set(0, 0, 1), sw), _s.set(1, 1, 1));
         _leg.premultiply(_base);
         R.legs.setMatrixAt(nLeg++, _leg);
@@ -2401,14 +2611,18 @@ function updateCaravans(time) {
       }
       nCam++;
     });
-    if (cv.halt === 'camp') R.camp.push([M.lead.x + Math.cos(M.lead.dir + 1.6) * 2.6, ly + 0.5, M.lead.z + Math.sin(M.lead.dir + 1.6) * 2.6]);
+    if (cv.halt === 'camp') {
+      const fx = M.lead.x + Math.cos(M.lead.dir + 1.6) * 2.6, fz = M.lead.z + Math.sin(M.lead.dir + 1.6) * 2.6, fy = sampleH(fx, fz);
+      R.camp.push([fx, fy + 0.5, fz]);
+      if (nCamp < 12) setInst(R.camps, nCamp++, fx, fy, fz, M.lead.dir, 1.2);
+    }
     // dust behind moving caravans in view
     if (M.moving && running && (!lowQ() || Math.random() < 0.5)) {
       const last = M.camels[M.camels.length - 1] || M.lead;
       if (Math.random() < 0.35 * Math.min(4, speedNow())) emitDust(last.x, sampleH(last.x, last.z) + 0.3, last.z);
     }
   }
-  for (const [m, n] of [[R.camels, nCam], [R.legs, nLeg], [R.bundles, nB], [R.horses, nH], [R.ghorses, nGH], [R.cloaks, nCl], [R.guards, nG], [R.heads, nCam]]) {
+  for (const [m, n] of [[R.camels, nCam], [R.legs, nLeg], [R.bundles, nB], [R.horses, nH], [R.ghorses, nGH], [R.cloaks, nCl], [R.guards, nG], [R.heads, nCam], [R.camps, nCamp]]) {
     if (!m) continue;
     m.count = n; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;
   }
@@ -2449,12 +2663,47 @@ function updateParticles(dt, nf, time) {
   let n = 0;
   const put = (x, y, z, s, r, g, b, al) => { if (n >= R.lanterns.userData.n) return; L.position.setXYZ(n, x, y, z); L.psize.setX(n, s); L.pcolor.setXYZ(n, r, g, b); L.palpha.setX(n, al); n++; };
   const flick = (k) => 0.85 + Math.sin(time * 9 + k * 3.7) * 0.08 + Math.sin(time * 23 + k) * 0.05;
-  world.lanterns.forEach((p, k) => put(p[0], p[1], p[2], 3.2 * p[3], 1, 0.72, 0.36, nf * flick(k)));
+  world.lanterns.forEach((p, k) => put(p[0], p[1], p[2], 3.4 * p[3], 1, 0.7, 0.28, nf * flick(k)));
   for (const id in world.hanLanterns) { const own = sim.S.hans[id].level > 0; for (const p of world.hanLanterns[id]) put(p[0], p[1], p[2], own ? 3.4 : 2.4, 1, 0.7, 0.32, nf * flick(n) * (own ? 1 : 0.7)); }
   for (const p of R.camp || []) put(p[0], p[1], p[2], 3.0, 1, 0.55, 0.2, Math.max(0.35, nf) * flick(n));
   for (const p of R.banditFires || []) put(p[0], p[1], p[2], 2.8, 1, 0.42, 0.15, Math.max(0.5, nf) * flick(n));
   for (let i = n; i < R.lanterns.userData.n; i++) L.palpha.setX(i, 0);
   L.position.needsUpdate = L.palpha.needsUpdate = L.psize.needsUpdate = L.pcolor.needsUpdate = true;
+  // sand drift: respawns around the view, alpha by how sandy the ground is (calmer at night, none in winter)
+  {
+    const A = R.sand.geometry.attributes, wind = 1 - nf * 0.6, winter = sim.season === 3;
+    for (let i = 0; i < R.sand.userData.n; i++) {
+      R.sandLife[i] -= dt * 0.35;
+      if (R.sandLife[i] <= 0) {
+        const x = cam.x + rr(-0.55, 0.55) * cam.dist, z = cam.z + rr(-0.45, 0.4) * cam.dist;
+        A.position.setXYZ(i, x, sampleH(x, z) + rr(0.2, 1.6), z);
+        R.sandLife[i] = rr(0.6, 1);
+        const d = desertF(x, z); A.psize.setX(i, rr(0.35, 0.8) * (1 + d)); A.pcolor.setXYZ(i, 0.96, 0.84, 0.6);
+        A.palpha.setX(i, winter ? 0 : (0.14 + d * 0.4) * wind);
+        continue;
+      }
+      const x = A.position.getX(i) + dt * 7 * wind, z = A.position.getZ(i) - dt * 2.6 * wind;
+      const gy = sampleH(x, z) + 0.25;
+      A.position.setXYZ(i, x, Math.max(gy, A.position.getY(i) + Math.sin(time * 3 + i) * dt * 0.6), z);
+    }
+    for (const k of ['position', 'palpha', 'psize', 'pcolor']) A[k].needsUpdate = true;
+  }
+  // embers: little sparks lifting off every fire
+  {
+    const A = R.embers.geometry.attributes, fires = (R.camp || []).concat(R.banditFires || []);
+    if (fires.length && Math.random() < dt * 14 * Math.min(4, fires.length)) {
+      const f = fires[Math.floor(Math.random() * fires.length)], i = R.emberNext = (R.emberNext + 1) % R.embers.userData.n;
+      A.position.setXYZ(i, f[0] + rr(-0.3, 0.3), f[1], f[2] + rr(-0.3, 0.3)); R.emberLife[i] = 1;
+      A.pcolor.setXYZ(i, 1, rr(0.45, 0.7), 0.18); A.psize.setX(i, rr(0.25, 0.5));
+    }
+    for (let i = 0; i < R.embers.userData.n; i++) {
+      if (R.emberLife[i] <= 0) { A.palpha.setX(i, 0); continue; }
+      R.emberLife[i] -= dt * 0.7;
+      A.position.setXYZ(i, A.position.getX(i) + Math.sin(time * 5 + i) * dt * 0.4, A.position.getY(i) + dt * 1.6, A.position.getZ(i));
+      A.palpha.setX(i, Math.max(0, R.emberLife[i]) * 0.9);
+    }
+    for (const k of ['position', 'palpha', 'psize', 'pcolor']) A[k].needsUpdate = true;
+  }
   // snow in winter around the view
   if (R.snow.visible) {
     const s = R.snow.geometry.attributes.position;
@@ -2466,7 +2715,7 @@ function updateParticles(dt, nf, time) {
     s.needsUpdate = true;
   }
   const sc = renderer.getDrawingBufferSize(_v2).y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
-  for (const p of [R.dust, R.lanterns, R.snow]) p.material.uniforms.scale.value = sc;
+  for (const p of [R.dust, R.lanterns, R.snow, R.sand, R.embers]) p.material.uniforms.scale.value = sc;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -2696,7 +2945,7 @@ function toast(msg, kind = 'info', ms = 4200) {
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 450); }, ms);
 }
 const repLevel = (r) => Math.min(3, Math.floor(r / 25));
-const repColor = (r) => ['#9C8B74', '#E9B65C', '#9FD27A', '#6FC6E0'][repLevel(r)];
+const repColor = (r) => ['#9C8B74', '#C9A24A', '#2F8F6B', '#2F6FA0'][repLevel(r)];
 function contractLine(c) { return t('contractLine', { qty: c.qty, good: goodName(c.good), city: cityName(c.city) }) + ' · ' + (c.label === 'snow' ? t('beforeSnow') : t('untilDay', { n: c.deadline })); }
 
 function buildHud() {
@@ -2764,7 +3013,8 @@ function selectCaravan(id, focus) {
   else if (isNarrow()) { $('cityPanel').classList.add('hidden'); game.openCity = null; game.openHan = null; }
   showHint(t('hintSelected'));
 }
-const isNarrow = () => innerWidth <= 760;
+// phones: one panel at a time (portrait bottom sheet, or a side page in short landscape screens)
+const isNarrow = () => innerWidth <= 760 || innerHeight <= 500;
 function cityClicked(id) {
   const cv = game.selCv && sim.caravan(game.selCv);
   if (cv && cv.city !== id && cv.dest !== id) {
@@ -2868,7 +3118,7 @@ function renderCity() {
   const here = sim.playerCaravans().filter((x) => x.city === id);
   p.innerHTML = `<div class="head"><div class="grow"><h2>${cityName(id)}</h2><div class="subtitle">${t('cityTag.' + id)}</div></div>
     <button class="btn icon close" id="cClose" aria-label="${t('close')}">${ICON.close}</button></div>
-    ${ev ? `<div class="tag" style="margin-top:8px;background:${ev.type === 'plague' ? 'rgba(150,170,60,.25)' : 'rgba(233,182,92,.25)'}">${ev.type === 'plague' ? ICON.plague : ICON.festival}<b>${t(ev.type === 'plague' ? 'eventPlague' : 'eventFestival')}</b> · ${t('days', { n: ev.days })}</div>` : ''}
+    ${ev ? `<div class="tag" style="margin-top:8px;background:${ev.type === 'plague' ? 'rgba(110,130,40,.22)' : 'rgba(201,162,74,.3)'}">${ev.type === 'plague' ? ICON.plague : ICON.festival}<b>${t(ev.type === 'plague' ? 'eventPlague' : 'eventFestival')}</b> · ${t('days', { n: ev.days })}</div>` : ''}
     <div class="row sp" style="margin-top:8px"><span class="row" style="gap:6px">${ICON.rep}<b>${t('rep')}: ${Math.round(rep)}</b> <span class="muted">${t('repLevels')[repLevel(rep)]}</span></span><span class="muted">spread ${Math.round(sim.spread(id) * 100)}%</span></div>
     <div class="bar" style="margin-top:4px"><i style="width:${rep}%;background:${repColor(rep)}"></i></div>
     <div class="tags">${roleTags}</div>
@@ -2936,7 +3186,7 @@ function renderHan() {
     <button class="btn icon close" id="hClose" aria-label="${t('close')}">${ICON.close}</button></div>
     <div class="row" style="margin-top:10px;gap:8px">${ICON.han}<b>${lvl ? t('hanYours', { n: lvl }) : t('hanPublic')}</b></div>
     ${lvl ? `<div class="muted" style="margin-top:4px">${t('hanEarned', { n: fmt(hs.income) })}</div>` : ''}
-    ${bandit ? `<div class="tag" style="margin-top:8px;background:rgba(160,50,30,.35)">${ICON.bandit}${t('banditsHere')} · ${roadName(H.road)}</div>` : ''}
+    ${bandit ? `<div class="tag" style="margin-top:8px;background:rgba(163,50,28,.16);color:#7E2410">${ICON.bandit}${t('banditsHere')} · ${roadName(H.road)}</div>` : ''}
     <p class="muted" style="line-height:1.5">${t('hanInfo')}</p>
     <div class="card">${t('hanBenefits', { p: Math.round(E.protect[next] * 100), u: fmt1(E.upkeepCut * 100), i: E.income[next] })}</div>
     <div class="menu" style="display:grid;margin-top:8px">${cost == null ? `<button class="btn" disabled>${t('maxLevel')}</button>` :
@@ -3085,12 +3335,12 @@ function drawChart(cv) {
   let lo = Math.min(0, ...L.map((p) => p.a)), hi = Math.max(ECONOMY.goal.akce * 0.25, ...L.map((p) => Math.max(p.a, p.w)));
   const d0 = L[0].d, d1 = Math.max(L[L.length - 1].d, d0 + 10);
   const X = (d) => pad.l + (d - d0) / (d1 - d0) * (w - pad.l - pad.r), Y = (v) => h - pad.b - (v - lo) / (hi - lo) * (h - pad.t - pad.b);
-  g.font = '11px Nunito Sans, sans-serif'; g.fillStyle = '#B9A27F'; g.strokeStyle = 'rgba(255,226,180,.12)'; g.lineWidth = 1;
+  g.font = '11px Palatino Linotype, Georgia, serif'; g.fillStyle = '#6E5038'; g.strokeStyle = 'rgba(78,53,36,.18)'; g.lineWidth = 1;
   for (let i = 0; i <= 4; i++) { const v = lo + (hi - lo) * i / 4; g.beginPath(); g.moveTo(pad.l, Y(v)); g.lineTo(w - pad.r, Y(v)); g.stroke(); g.fillText(fmt(v), 4, Y(v) + 4); }
   for (let y = Math.ceil(d0 / DAYS_PER_YEAR) * DAYS_PER_YEAR; y <= d1; y += DAYS_PER_YEAR) { g.beginPath(); g.moveTo(X(y), pad.t); g.lineTo(X(y), h - pad.b); g.stroke(); g.fillText(t('year', { n: y / DAYS_PER_YEAR + 1 }), X(y) + 3, h - 6); }
-  if (hi >= ECONOMY.goal.akce) { g.setLineDash([5, 4]); g.strokeStyle = '#E9B65C'; g.beginPath(); g.moveTo(pad.l, Y(ECONOMY.goal.akce)); g.lineTo(w - pad.r, Y(ECONOMY.goal.akce)); g.stroke(); g.setLineDash([]); }
+  if (hi >= ECONOMY.goal.akce) { g.setLineDash([5, 4]); g.strokeStyle = '#8A6A2A'; g.beginPath(); g.moveTo(pad.l, Y(ECONOMY.goal.akce)); g.lineTo(w - pad.r, Y(ECONOMY.goal.akce)); g.stroke(); g.setLineDash([]); }
   const line = (k, c, wd) => { g.strokeStyle = c; g.lineWidth = wd; g.beginPath(); L.forEach((p, i) => (i ? g.lineTo(X(p.d), Y(p[k])) : g.moveTo(X(p.d), Y(p[k])))); g.stroke(); };
-  line('w', '#7FBF6A', 1.6); line('a', '#E08A2E', 2.4);
+  line('w', '#2F8F6B', 1.8); line('a', '#B4532A', 2.6);
 }
 function showLedger(back) {
   game.modalKind = 'ledger';
@@ -3098,7 +3348,7 @@ function showLedger(back) {
   const stat = (k, sign) => { const v = Math.abs(y[k] || 0), z = Math.round(v) === 0; return `<div class="muted">${st[k]}</div><b class="${z ? '' : sign > 0 ? 'up' : 'dn'}">${sign < 0 && !z ? '−' : ''}${fmt(v)}</b>`; };
   const left = Math.max(0, END_DAY - S.day);
   const m = modal(`<h2>${t('ledgerTitle')}</h2>
-    <div class="legend"><span><i style="background:#E08A2E"></i>${t('chartCash')}</span><span><i style="background:#7FBF6A"></i>${t('chartWorth')}</span><span><i style="background:#E9B65C;height:2px"></i>${t('goal')}</span></div>
+    <div class="legend"><span><i style="background:#B4532A"></i>${t('chartCash')}</span><span><i style="background:#2F8F6B"></i>${t('chartWorth')}</span><span><i style="background:#8A6A2A;height:2px"></i>${t('goal')}</span></div>
     <canvas class="chart" id="lChart"></canvas>
     <div class="cols" style="margin-top:12px">
       <div><h3 class="muted" style="margin:0 0 6px">${t('thisYear')} · ${t('year', { n: sim.year })}</h3><div class="kv">${stat('sales', 1)}${stat('purchases', -1)}${stat('profit', y.profit >= 0 ? 1 : -1)}${stat('contracts', 1)}${stat('hanIncome', 1)}${stat('upkeep', -1)}${stat('investments', -1)}${stat('losses', -1)}</div></div>
@@ -3216,8 +3466,9 @@ addEventListener('resize', () => {
 // ------------------------------------------------------------------------------------------------
 // frame loop
 // ------------------------------------------------------------------------------------------------
-const SKY = { day: new THREE.Color('#E8C598'), dusk: new THREE.Color('#E39363'), night: new THREE.Color('#1E2A44'), winter: new THREE.Color('#D9D4CC') };
-const SUNC = { low: new THREE.Color('#FFB067'), high: new THREE.Color('#FFE1B0'), moon: new THREE.Color('#8FA8E0') };
+const SKY = { day: new THREE.Color('#F0CF9A'), dusk: new THREE.Color('#E58A5A'), night: new THREE.Color(PALETTE.indigo), winter: new THREE.Color('#DCD6CF') };
+const SUNC = { low: new THREE.Color('#FFAD5C'), high: new THREE.Color('#FFE3B6'), moon: new THREE.Color('#9AA8F2') };
+const RIM = { day: new THREE.Color('#FFB866'), night: new THREE.Color('#7F8CE0') };
 function updateLight() {
   const h = sim.hour, nf = sim.nightFactor(), dayT = Math.max(0, Math.min(1, (h - 5.5) / 15));
   const el = 0.32 + 0.55 * Math.sin(Math.PI * dayT), az = lerp(1.15, -1.15, dayT);
@@ -3227,21 +3478,26 @@ function updateLight() {
   sun.position.copy(dir).multiplyScalar(300); sun.target.position.set(0, 0, 0);
   col.copy(SUNC.low).lerp(SUNC.high, Math.sin(Math.PI * dayT) * 0.8);
   sun.color.copy(col).lerp(SUNC.moon, nf);
-  sun.intensity = lerp(2.7, 0.7, nf);
-  hemi.color.set('#FFE6C2').lerp(col2.set('#5A6A98'), nf);
-  hemi.groundColor.set('#6E5638').lerp(col2.set('#2A2630'), nf);
-  hemi.intensity = lerp(1.3, 0.85, nf);
+  sun.intensity = lerp(2.8, 0.75, nf);
   const dusk = 1 - Math.abs(nf * 2 - 1);
+  hemi.color.set('#FFE7C4').lerp(col2.set('#F2A06A'), dusk * 0.35).lerp(col2.set('#56609E'), nf);
+  hemi.groundColor.set('#7A5434').lerp(col2.set(PALETTE.indigo), nf);
+  hemi.intensity = lerp(1.25, 0.95, nf);
+  // rim light: warm by day and at dusk, cool moonlight at night; cloud shadows only while the sun is up
+  FX.uRim.value.copy(RIM.day).lerp(RIM.night, nf).multiplyScalar(lerp(0.42, 0.55, dusk) * (1 - nf * 0.3));
+  FX.uCloud.value = 0.17 * (1 - nf) * (sim.season === 3 ? 0.6 : 1);
+  FX.uTime.value = performance.now() / 1000;
+  FX.uTint.value.setRGB(1, 1, 1).lerp(col2.setRGB(0.6, 0.66, 1.08), nf).lerp(col2.setRGB(1.06, 0.96, 0.9), dusk * (1 - nf) * 0.8);
   col.copy(SKY.day);
   if (sim.season === 3) col.lerp(SKY.winter, 0.5);
-  col.lerp(SKY.dusk, dusk * 0.55).lerp(SKY.night, nf);
+  col.lerp(SKY.dusk, dusk * 0.6).lerp(SKY.night, nf);
   scene.background.copy(col); scene.fog.color.copy(col);
   // High tier: the golden-hour HDRI lights the water and salt lake; it fades out with the day and turns with the sun
   if (scene.environment) { scene.environmentIntensity = lerp(0.8, 0.05, nf) * (sim.season === 3 ? 0.85 : 1); scene.environmentRotation.y = -az + 1.2; world.lake.material.envMapIntensity = scene.environmentIntensity * 0.18; world.lake.material.envMapRotation.y = -az + 1.2; }
   // spring floods raise the river and coast
   const flood = sim.season === 0 ? Math.sin(Math.PI * (sim.dayOfSeason / ECONOMY.time.seasonDays)) : 0;
   world.water.position.y = 0.05 + flood * 0.45;
-  world.water.material.color.set('#3F8EA6').lerp(col2.set('#7C8A6A'), flood * 0.45);
+  world.water.material.color.set(WATER_COL).lerp(col2.set('#7C8A6A'), flood * 0.45);
   return nf;
 }
 const perf = { upd: 0, ren: 0, lab: 0 };
@@ -3272,7 +3528,7 @@ function frame(now) {
   if (sel && sel._pos) { R.selRing.visible = true; R.selRing.position.set(sel._pos.x, (sel._y || 0) + 0.25, sel._pos.z); R.selRing.scale.setScalar(1.45 + Math.sin(time * 4) * 0.08); } else R.selRing.visible = false;
   if (game.openCity) { const c = CITIES[game.openCity]; R.cityRing.visible = true; R.cityRing.position.set(c.x, c.base + 0.3, c.z); } else R.cityRing.visible = false;
   if (hoverCity && hoverCity !== game.openCity) { const c = CITIES[hoverCity]; R.hoverRing.visible = true; R.hoverRing.position.set(c.x, c.base + 0.3, c.z); } else R.hoverRing.visible = false;
-  routeT += dt; if (routeT > 0.4 && sel && sel.path) { routeT = 0; refreshRoute(); }
+  routeT += dt; if (routeT > 0.1 && sel && (sel.path || R.preview.visible)) { routeT = 0; refreshRoute(); }
   if (sel && !sel.path && R.route.visible) R.route.visible = false;
   // a modal freezes the game: keep the last frame instead of re-rendering under the blur
   const tB = performance.now();
@@ -3371,15 +3627,13 @@ function applyTerrainDetail(tex) {
     for (let v = 0; v < 3; v++) w.set([sand, (1 - sand) * (1 - rock), rock], t * 9 + v * 3);
   }
   world.terrain.geometry.setAttribute('dw', new THREE.BufferAttribute(w, 3));
-  const mat = matClay.clone();
-  mat.onBeforeCompile = (sh) => {
+  const mat = stylize(matClay.clone(), 'terrain-detail', (sh) => {
     sh.uniforms.detailMap = { value: tex };
     sh.vertexShader = 'attribute vec3 dw; varying vec3 vDW; varying vec2 vWXZ;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vDW = dw; vWXZ = (modelMatrix * vec4(position, 1.0)).xz;');
     // two scales of the grey high-pass detail (mean 0.5), so the tiling does not read; about +-15 % brightness
     sh.fragmentShader = 'uniform sampler2D detailMap; varying vec3 vDW; varying vec2 vWXZ;\n' + sh.fragmentShader.replace('#include <color_fragment>',
       '#include <color_fragment>\n  vec3 d1 = texture2D(detailMap, vWXZ / 9.0).rgb - 0.5; vec3 d2 = texture2D(detailMap, vWXZ / 31.0 + 0.37).rgb - 0.5;\n  diffuseColor.rgb *= 1.0 + dot(d1 * 0.62 + d2 * 0.38, vDW) * 0.55;');
-  };
-  mat.customProgramCacheKey = () => 'kervan-terrain-detail';
+  });
   world.terrain.material = mat;
 }
 async function loadAssets() {
