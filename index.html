@@ -2460,8 +2460,7 @@ function campGeo() {
   b.add(BOX(), '#5A3A22', 0, 0.05, 0, 0.9, 0.1, 0.12, 0.5); b.add(BOX(), '#5A3A22', 0, 0.1, 0, 0.9, 0.1, 0.12, -0.6);
   return b.geometry();
 }
-// render state (pre-allocate dynamic fire lists to eliminate per-frame array allocations)
-const R = { camp: [], banditFires: [] };
+const R = {}; // render state
 function inst(geo, n, colored) {
   const m = new THREE.InstancedMesh(geo, matInst, n);
   m.castShadow = true; m.receiveShadow = false; m.frustumCulled = false; m.count = 0;
@@ -2583,7 +2582,7 @@ const _leg = new THREE.Matrix4(), _base = new THREE.Matrix4();
 function updateCaravans(time) {
   const S = sim.S;
   let nCam = 0, nLeg = 0, nB = 0, nH = 0, nGH = 0, nCl = 0, nG = 0, nCamp = 0;
-  R.camp.length = 0;
+  R.camp = [];
   const SC = CV_SCALE;
   for (const cv of S.caravans) {
     const M = members(cv);
@@ -2638,14 +2637,13 @@ function updateCaravans(time) {
       if (Math.random() < 0.35 * Math.min(4, speedNow())) emitDust(last.x, sampleH(last.x, last.z) + 0.3, last.z);
     }
   }
-  // perf: update instance counts directly without per-frame nested array allocations
-  const syncInst = (m, n) => { if (m) { m.count = n; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; } };
-  syncInst(R.camels, nCam); syncInst(R.legs, nLeg); syncInst(R.bundles, nB);
-  syncInst(R.horses, nH); syncInst(R.ghorses, nGH); syncInst(R.cloaks, nCl);
-  syncInst(R.guards, nG); syncInst(R.heads, nCam); syncInst(R.camps, nCamp);
+  for (const [m, n] of [[R.camels, nCam], [R.legs, nLeg], [R.bundles, nB], [R.horses, nH], [R.ghorses, nGH], [R.cloaks, nCl], [R.guards, nG], [R.heads, nCam], [R.camps, nCamp]]) {
+    if (!m) continue;
+    m.count = n; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;
+  }
   // bandits
   let nt = 0, nf = 0;
-  R.banditFires.length = 0;
+  R.banditFires = [];
   for (const b of S.bandits) {
     const r = ROAD_BY_ID[b.road], p = pointAt(r.pts, r.cum, b.s);
     const ox = -Math.sin(p.dir) * 4.2, oz = Math.cos(p.dir) * 4.2;
@@ -2707,12 +2705,9 @@ function updateParticles(dt, nf, time) {
   }
   // embers: little sparks lifting off every fire
   {
-    // perf: sample fire sources without per-frame array concat
-    const A = R.embers.geometry.attributes, nC = R.camp.length, nB = R.banditFires.length, nF = nC + nB;
-    if (nF && Math.random() < dt * 14 * Math.min(4, nF)) {
-      const idx = Math.floor(Math.random() * nF);
-      const f = idx < nC ? R.camp[idx] : R.banditFires[idx - nC];
-      const i = R.emberNext = (R.emberNext + 1) % R.embers.userData.n;
+    const A = R.embers.geometry.attributes, fires = (R.camp || []).concat(R.banditFires || []);
+    if (fires.length && Math.random() < dt * 14 * Math.min(4, fires.length)) {
+      const f = fires[Math.floor(Math.random() * fires.length)], i = R.emberNext = (R.emberNext + 1) % R.embers.userData.n;
       A.position.setXYZ(i, f[0] + rr(-0.3, 0.3), f[1], f[2] + rr(-0.3, 0.3)); R.emberLife[i] = 1;
       A.pcolor.setXYZ(i, 1, rr(0.45, 0.7), 0.18); A.psize.setX(i, rr(0.25, 0.5));
     }
@@ -3495,9 +3490,8 @@ function updateLight() {
   const el = 0.48 + 0.42 * Math.sin(Math.PI * dayT), az = lerp(1.15, -1.15, dayT);
   _v.set(Math.sin(az) * Math.cos(el), Math.sin(el), 0.55 * Math.cos(el) + 0.2).normalize();
   const moon = _v2.set(-0.35, 0.82, 0.45).normalize();
-  // perf: avoid per-frame vector allocation by mutating scratch vector _v directly
-  _v.lerp(moon, sstep(0.55, 0.85, nf)).normalize();
-  sun.position.copy(_v).multiplyScalar(300); sun.target.position.set(0, 0, 0);
+  const dir = _v.clone().lerp(moon, sstep(0.55, 0.85, nf)).normalize();
+  sun.position.copy(dir).multiplyScalar(300); sun.target.position.set(0, 0, 0);
   col.copy(SUNC.low).lerp(SUNC.high, Math.max(h < 12 ? 0.45 : 0, Math.sin(Math.PI * dayT) * 0.85));
   sun.color.copy(col).lerp(SUNC.moon, dk);
   sun.intensity = lerp(2.9, 0.75, dk);
@@ -3574,18 +3568,13 @@ function frame(now) {
   }
   if (running) {
     bellT -= dt; stepT -= dt;
-    // perf: filter moving caravans only when bell timer expires, not every frame
-    if (bellT <= 0) {
-      const moving = sim.playerCaravans().filter((c) => c.path && !c.halt && c._pos);
-      if (moving.length) {
-        bellT = rr(1.2, 2.6) / Math.min(2, speedNow());
-        const c = moving[Math.floor(Math.random() * moving.length)];
-        const d = Math.hypot(c._pos.x - cam.x, c._pos.z - cam.z);
-        const v = (1 - sstep(25, 120, d)) * (1 - sstep(60, 240, cam.dist) * 0.7);
-        if (v > 0.05) Sound.bell(v * 0.8);
-      } else {
-        bellT = 0.4;
-      }
+    const moving = sim.playerCaravans().filter((c) => c.path && !c.halt && c._pos);
+    if (bellT <= 0 && moving.length) {
+      bellT = rr(1.2, 2.6) / Math.min(2, speedNow());
+      const c = moving[Math.floor(Math.random() * moving.length)];
+      const d = Math.hypot(c._pos.x - cam.x, c._pos.z - cam.z);
+      const v = (1 - sstep(25, 120, d)) * (1 - sstep(60, 240, cam.dist) * 0.7);
+      if (v > 0.05) Sound.bell(v * 0.8);
     }
     if (stepT <= 0 && sel && sel.path && !sel.halt && cam.dist < 110) { stepT = 0.42 / Math.min(2, speedNow()); Sound.step(0.6 * (1 - cam.dist / 110)); }
   }
