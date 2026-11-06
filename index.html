@@ -21,190 +21,865 @@ window.addEventListener('error', function (e) { window.__errors.push(String(e.me
 window.addEventListener('unhandledrejection', function (e) { window.__errors.push('promise: ' + String(e.reason && e.reason.message || e.reason)); });
 </script>
 <style>
-/* Kervan 2026-11 redesign: a Silk Road travel journal. Parchment map pages inked in brown, leather buttons with
-   stitching, a leather strap for the top bar. Palette: dune #E0B97A, terracotta #B4532A, oasis #2F8F6B,
-   night indigo #1B1F3B, lantern #FFB347. Display face: Marcellus (OFL, self-hosted subset with Turkish letters). */
+/* =================================================================================================
+   KERVAN - RADICAL UI/UX REBIRTH: SELÇUKLU İPEK YOLU KERVANI (ANATOLIAN SILK ROAD CHRONICLE)
+   Art Direction: Grand Seljuk Caravanserai architecture, imperial leather-bound merchant ledger,
+   illuminated manuscript parchment, engraved brass medallions, and dynamic desert day/night lighting.
+   Display Font: Marcellus / KervanDisplay (OFL, self-hosted with Turkish subset).
+   ================================================================================================= */
 @font-face { font-family: 'KervanDisplay'; src: url(assets/fonts/marcellus-tr.woff2) format('woff2'); font-display: swap; }
+
 :root {
-  --terra: #B4532A; --terra-hi: #C8663A; --oasis: #2F8F6B; --indigo: #1B1F3B; --lantern: #FFB347; --dune: #E0B97A; --brass: #C9A24A;
-  --parch: #F3E4C4; --parch2: #E7CFA0; --ink: #2B1A10; --ink-dim: #4E3524; --ink-mute: #6E5038; --rule: rgba(78, 53, 36, 0.28);
-  --leather: #5B321C; --leather2: #43230F; --cream: #FBEFD6; --cream-dim: #E9D3AE;
-  --good: #23704A; --bad: #A3321C; --info: #8A6A2A; --radius: 10px; --focus: #1F5FA8;
+  /* Grand Anatolian Palette */
+  --terra: #B4532A; --terra-hi: #D66736; --terra-deep: #782F12;
+  --gold: #F5B041; --gold-bright: #FDD835; --gold-dark: #C68A24; --brass: #D4AF37;
+  --oasis: #1F7A63; --oasis-hi: #2BA888; --oasis-dark: #124B3D;
+  --indigo: #161A30; --indigo-surface: #202646; --indigo-border: #353D6E;
+  --dune: #E0B97A; --dune-light: #F7E7C4; --dune-dark: #C49754;
+  --parch: #F7EAD0; --parch2: #EBD8B2; --parch-card: #FFF8EB;
+  --ink: #26160C; --ink-dim: #4D3320; --ink-mute: #785A3F; --rule: rgba(78, 53, 36, 0.28);
+  --leather: #5A2F17; --leather2: #3E1D0B; --leather-light: #774123;
+  --cream: #FCF2DF; --cream-dim: #EBD6B5;
+  --good: #1B7A4B; --bad: #B3261E; --warn: #D97706; --focus: #D4AF37;
+  --radius: 12px; --radius-sm: 8px;
+
   --font: 'Palatino Linotype', Palatino, 'Book Antiqua', 'URW Palladio L', 'Noto Serif', Georgia, serif;
   --display: 'KervanDisplay', 'Palatino Linotype', Georgia, serif;
-  --paper: radial-gradient(ellipse at 12% 8%, rgba(255, 250, 232, 0.75), rgba(255, 250, 232, 0) 55%),
-    radial-gradient(ellipse at 92% 96%, rgba(170, 108, 52, 0.22), rgba(170, 108, 52, 0) 60%),
-    radial-gradient(ellipse at 85% 10%, rgba(170, 108, 52, 0.12), rgba(170, 108, 52, 0) 40%),
-    linear-gradient(170deg, #F6E9CC, #EBD6AC);
+
+  --paper: radial-gradient(ellipse at 15% 10%, rgba(255, 252, 240, 0.85), rgba(255, 250, 232, 0) 55%),
+    radial-gradient(ellipse at 90% 95%, rgba(168, 104, 48, 0.24), rgba(168, 104, 48, 0) 60%),
+    radial-gradient(ellipse at 85% 12%, rgba(170, 108, 52, 0.15), rgba(170, 108, 52, 0) 45%),
+    linear-gradient(172deg, #F8EED8, #EBD5AB);
   --hide: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.04 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; overflow: hidden; background: #8E5A33; color: var(--ink); font-family: var(--font); font-variant-numeric: lining-nums tabular-nums; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; height: 100%; overflow: hidden;
+  background: #7D4925; color: var(--ink);
+  font-family: var(--font);
+  font-variant-numeric: lining-nums tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+}
 body { touch-action: none; user-select: none; -webkit-user-select: none; }
 canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
 button { font: inherit; color: inherit; }
 .hidden { display: none !important; }
-/* parchment page with an inked double frame (the old "glass" class name is kept for the markup) */
-.glass { color: var(--ink); background: var(--hide), var(--paper); border: 1px solid #7A5634; border-radius: var(--radius);
-  box-shadow: inset 0 0 0 4px rgba(246, 233, 204, 0.9), inset 0 0 0 5px rgba(78, 53, 36, 0.42), inset 0 0 26px rgba(150, 95, 45, 0.25), 0 10px 26px rgba(43, 22, 8, 0.38); }
+
+/* Custom themed scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #9A7550 rgba(78, 53, 36, 0.12); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(78, 53, 36, 0.08); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #9A7550; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--terra); }
+
+/* Inked Parchment Surface with Seljuk architectural border */
+.glass {
+  color: var(--ink);
+  background: var(--hide), var(--paper);
+  border: 1px solid #704724;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 3px rgba(248, 238, 216, 0.95),
+              inset 0 0 0 5px rgba(82, 50, 26, 0.45),
+              inset 0 0 30px rgba(142, 85, 36, 0.22),
+              0 12px 32px rgba(32, 16, 6, 0.45);
+  position: relative;
+}
 body.paper .glass { background: url(assets/textures/parchment.webp) 0 0 / 256px 256px repeat, var(--hide), var(--paper); }
-/* leather buttons with a stitched inner edge */
-.btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 9px;
-  border: 1px solid var(--leather2); color: var(--cream); background: linear-gradient(180deg, #74432A, var(--leather) 55%, #4C2914);
-  box-shadow: inset 0 1px 0 rgba(255, 214, 160, 0.28), 0 2px 0 var(--leather2), 0 3px 6px rgba(43, 22, 8, 0.25);
-  cursor: pointer; font-weight: 700; letter-spacing: .01em; transition: filter .15s, transform .1s, box-shadow .15s; }
-.btn::after { content: ''; position: absolute; inset: 3px; border: 1px dashed rgba(251, 239, 214, 0.42); border-radius: 6px; pointer-events: none; }
-.btn:hover { filter: brightness(1.12); }
-.btn:active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255, 214, 160, 0.2), 0 1px 0 var(--leather2); }
-.btn.primary { background: linear-gradient(180deg, #CC6A3A, var(--terra) 55%, #92401C); border-color: #6E2C10; color: #FFF6E6; }
-.btn:disabled { opacity: .45; cursor: not-allowed; filter: saturate(.5); }
-.btn.sm { min-height: 34px; padding: 0 11px; font-size: 13.5px; border-radius: 8px; }
+
+/* Tactile saddle leather buttons with stitched edge & brass gleam */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid var(--leather2);
+  color: var(--cream);
+  background: linear-gradient(180deg, #6E3B20, var(--leather) 55%, #3F1C0B);
+  box-shadow: inset 0 1px 0 rgba(255, 222, 175, 0.35),
+              0 2px 0 var(--leather2),
+              0 4px 10px rgba(36, 18, 6, 0.35);
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: .015em;
+  transition: filter .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px dashed rgba(252, 242, 223, 0.45);
+  border-radius: 7px;
+  pointer-events: none;
+}
+.btn:hover { filter: brightness(1.14); }
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 0 rgba(255, 222, 175, 0.2), 0 1px 0 var(--leather2);
+}
+.btn.primary {
+  background: linear-gradient(180deg, #D66736, var(--terra) 55%, #8C3714);
+  border-color: #63230A;
+  color: #FFF9F0;
+  box-shadow: inset 0 1px 0 rgba(255, 235, 205, 0.45), 0 2px 0 #541E08, 0 4px 12px rgba(180, 83, 42, 0.4);
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; filter: saturate(.4); }
+.btn.sm { min-height: 38px; padding: 0 12px; font-size: 13.5px; border-radius: 8px; }
 .btn.sm::after { inset: 2px; border-radius: 6px; }
-.btn.icon { width: 40px; padding: 0; }
+.btn.icon { width: 42px; padding: 0; }
 .btn svg, .chip svg { width: 20px; height: 20px; flex: none; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-#hud :focus-visible, .lbl:focus-visible { outline-color: var(--lantern); }
-@media (pointer: coarse) { .btn, .btn.sm { min-height: 44px; } .btn.icon { width: 44px; } }
+#hud :focus-visible, .lbl:focus-visible { outline-color: var(--gold-bright); }
+@media (pointer: coarse) {
+  .btn, .btn.sm { min-height: 44px; min-width: 44px; }
+  .btn.icon { width: 44px; }
+}
 
-/* top bar: a stitched leather strap with brass-rimmed counters */
-#hud { position: fixed; top: 8px; left: 8px; right: 8px; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; color: var(--cream);
-  background: var(--hide), linear-gradient(180deg, #6E3E23, #4A2814); border: 1px solid #2A140A; border-radius: 12px;
-  box-shadow: inset 0 0 0 3px rgba(74, 40, 20, 0.6), inset 0 1px 0 rgba(255, 214, 160, 0.25), 0 8px 20px rgba(30, 14, 4, 0.4); }
-#hud::before { content: ''; position: absolute; inset: 4px; border: 1px dashed rgba(251, 239, 214, 0.35); border-radius: 9px; pointer-events: none; }
-body.paper #hud.glass { background: var(--hide), linear-gradient(180deg, #6E3E23, #4A2814); }
-#hud .brand { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 23px; color: #F4C87A; white-space: nowrap; letter-spacing: .03em; }
-#hud .brand svg { width: 34px; height: 34px; }
-#hud .stats { display: flex; gap: 6px; flex: 1; justify-content: center; flex-wrap: wrap; min-width: 0; }
-.chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 11px; border-radius: 99px; background: rgba(20, 8, 2, 0.32); font-weight: 700; font-size: 14.5px; white-space: nowrap;
-  border: 1px solid rgba(201, 162, 74, 0.45); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); }
-.chip.neg { color: #FF9C80; }
-.chip .sub { color: var(--cream-dim); font-weight: 400; }
-.chip svg { width: 22px; height: 22px; color: #E9BE62; }
-#hud .tools { display: flex; gap: 6px; align-items: center; }
-#hud .btn { background: rgba(20, 8, 2, 0.28); border-color: rgba(201, 162, 74, 0.45); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35); }
+/* =================================================================================================
+   TOP HUD: IMPERIAL MERCHANT CARAVAN STRAP (3-ZONE SEMANTIC ARCHITECTURE)
+   Zone 1: Logo & Seasonal Chronicle
+   Zone 2: Treasury, Caravans, Caravanserais & Reputation
+   Zone 3: Tactical Speed & System Controls
+   Night Mode: Dynamic transition to lantern-lit indigo desert camp!
+   ================================================================================================= */
+#hud {
+  position: fixed;
+  top: 8px; left: 8px; right: 8px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px 6px 14px;
+  color: var(--cream);
+  background: var(--hide), linear-gradient(180deg, #5C321B, #3D1F0E);
+  border: 1px solid #281206;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 2px rgba(110, 60, 32, 0.6),
+              inset 0 1px 0 rgba(255, 222, 175, 0.3),
+              0 8px 24px rgba(22, 10, 3, 0.5);
+  transition: background .4s ease, border-color .4s ease, box-shadow .4s ease;
+}
+#hud::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed rgba(252, 242, 223, 0.35);
+  border-radius: 10px;
+  pointer-events: none;
+}
+body.paper #hud.glass { background: var(--hide), linear-gradient(180deg, #5C321B, #3D1F0E); }
+
+/* Night Mode HUD: Desert night camp atmosphere with lantern glow */
+#hud.night {
+  background: var(--hide), linear-gradient(180deg, #1A1F38, #101426);
+  border-color: #272F54;
+  box-shadow: inset 0 0 0 2px rgba(45, 55, 95, 0.5),
+              inset 0 1px 0 rgba(245, 176, 65, 0.45),
+              0 8px 28px rgba(7, 9, 20, 0.7);
+}
+#hud.night::before { border-color: rgba(245, 176, 65, 0.35); }
+#hud.night .chip {
+  background: rgba(14, 18, 36, 0.65);
+  border-color: rgba(245, 176, 65, 0.4);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.55), 0 0 8px rgba(245, 176, 65, 0.15);
+}
+#hud.night .seg {
+  background: rgba(12, 16, 32, 0.6);
+  border-color: rgba(245, 176, 65, 0.4);
+}
+
+/* HUD Zone 1: Brand & Chronicle */
+#hud .hud-brand-date { display: flex; align-items: center; gap: 10px; flex: none; }
+#hud .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: 24px;
+  color: #F8D288;
+  white-space: nowrap;
+  letter-spacing: .04em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+#hud .brand svg { width: 34px; height: 34px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
+
+/* HUD Zone 2: Economic Treasury & Fleet Status */
+#hud .stats {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 13px;
+  border-radius: 99px;
+  background: rgba(18, 8, 2, 0.38);
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: all .2s ease;
+}
+.chip svg { width: 22px; height: 22px; color: #F5B041; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); }
+.chip.akce-chip {
+  background: linear-gradient(180deg, rgba(38, 20, 6, 0.65), rgba(20, 10, 2, 0.65));
+  border-color: rgba(245, 176, 65, 0.65);
+  color: #FFF6DD;
+}
+.chip.akce-chip.neg {
+  color: #FFA28D;
+  border-color: #D9480F;
+  background: rgba(180, 40, 20, 0.45);
+  animation: pulse-debt 1.5s infinite;
+}
+@keyframes pulse-debt { 0%, 100% { opacity: 1; } 50% { opacity: 0.75; } }
+.chip.cv-chip { border-color: rgba(224, 185, 122, 0.45); }
+.chip.han-chip { border-color: rgba(180, 83, 42, 0.55); }
+.chip.rep-chip { border-color: rgba(31, 122, 99, 0.55); }
+.chip .sub { color: var(--cream-dim); font-weight: 400; opacity: .88; font-size: 13px; }
+.rep-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  background: rgba(31, 122, 99, 0.35);
+  border: 1px solid rgba(43, 168, 136, 0.5);
+  color: #8CF0D4;
+}
+
+/* HUD Zone 3: Command & Settings */
+#hud .tools { display: flex; gap: 6px; align-items: center; flex: none; }
+#hud .btn {
+  background: rgba(18, 8, 2, 0.32);
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
 #hud .btn::after { display: none; }
-.seg { display: inline-flex; background: rgba(43, 26, 16, 0.1); border-radius: 10px; padding: 2px; gap: 2px; border: 1px solid var(--rule); }
-#hud .seg { background: rgba(20, 8, 2, 0.3); border-color: rgba(201, 162, 74, 0.45); }
-.seg .btn, #hud .seg .btn { min-height: 34px; padding: 0 10px; border: none; background: transparent; box-shadow: none; color: inherit; border-radius: 8px; font-size: 13.5px; }
+#hud .btn:hover { background: rgba(38, 18, 6, 0.55); border-color: var(--gold); }
+.seg {
+  display: inline-flex;
+  background: rgba(18, 8, 2, 0.35);
+  border-radius: 10px;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+.seg .btn, #hud .seg .btn {
+  min-height: 36px;
+  padding: 0 11px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
 .seg .btn::after { display: none; }
-.seg .btn.on, #hud .seg .btn.on { background: linear-gradient(180deg, #CC6A3A, var(--terra)); color: #FFF6E6; box-shadow: inset 0 1px 0 rgba(255, 220, 180, 0.35); }
-@media (pointer: coarse) { .seg .btn, #hud .seg .btn { min-height: 44px; min-width: 44px; } }
+.seg .btn.on, #hud .seg .btn.on {
+  background: linear-gradient(180deg, #D66736, var(--terra));
+  color: #FFFDF9;
+  box-shadow: inset 0 1px 0 rgba(255, 230, 195, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
 
-/* toasts: journal slips */
-#toasts { position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 30; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; width: min(440px, calc(100% - 24px)); }
-.toast { padding: 9px 14px; border-radius: 6px; font-size: 14.5px; font-weight: 600; display: flex; gap: 8px; align-items: center; animation: tin .22s ease-out; border-left: 5px solid var(--info); max-width: 100%; }
-.toast.good { border-left-color: var(--oasis); } .toast.bad { border-left-color: var(--bad); }
-.toast svg { width: 20px; height: 20px; flex: none; color: var(--info); } .toast.good svg { color: var(--oasis); } .toast.bad svg { color: var(--bad); }
-.toast.out { opacity: 0; transform: translateY(-6px); transition: opacity .25s, transform .25s; }
-@keyframes tin { from { opacity: 0; transform: translateY(-8px); } }
+/* =================================================================================================
+   TOASTS: ROYAL DISPATCH SLIPS (TOP-RIGHT PLACEMENT TO PREVENT WORLD-LABEL COLLISIONS)
+   ================================================================================================= */
+#toasts {
+  position: fixed;
+  top: 76px;
+  right: 16px;
+  left: auto;
+  transform: none;
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  pointer-events: none;
+  width: min(400px, calc(100% - 32px));
+}
+.toast {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  animation: toast-in .26s cubic-bezier(0.16, 1, 0.3, 1);
+  border-left: 5px solid var(--gold-dark);
+  max-width: 100%;
+  pointer-events: auto;
+  box-shadow: 0 8px 24px rgba(22, 10, 4, 0.38), inset 0 0 0 1px rgba(248, 238, 216, 0.85);
+}
+.toast.good { border-left-color: var(--oasis); }
+.toast.bad { border-left-color: var(--bad); }
+.toast svg { width: 22px; height: 22px; flex: none; color: var(--gold-dark); }
+.toast.good svg { color: var(--oasis); }
+.toast.bad svg { color: var(--bad); }
+.toast.out { opacity: 0; transform: translateX(20px); transition: opacity .25s, transform .25s; }
+@keyframes toast-in { from { opacity: 0; transform: translateX(20px); } }
 
-/* side panels: map pages */
-.panel { position: fixed; top: 72px; z-index: 15; width: 360px; max-height: calc(100% - 140px); overflow: auto; padding: 16px; scrollbar-width: thin; scrollbar-color: #9A7550 transparent; animation: pin .2s ease-out; }
-@keyframes pin { from { transform: translateY(6px); } }
-.panel.left { left: 8px; } .panel.right { right: 8px; width: 420px; }
-.panel h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 27px; color: #8E3B1C; letter-spacing: .02em; }
-.panel h3 { display: flex; align-items: center; gap: 8px; margin: 14px 0 6px; font-size: 12.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; }
+/* =================================================================================================
+   SIDE PANELS: INKED MERCHANT PORTFOLIO & BAZAAR LEDGERS
+   ================================================================================================= */
+.panel {
+  position: fixed;
+  top: 74px;
+  z-index: 15;
+  width: 380px;
+  max-height: calc(100% - 130px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 18px 20px;
+  animation: panel-in .22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes panel-in { from { opacity: 0; transform: translateY(10px); } }
+.panel.left { left: 12px; }
+.panel.right { right: 12px; width: 440px; }
+.panel h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 28px;
+  color: #8C3714;
+  letter-spacing: .025em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 8px;
+  font-size: 13px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 800;
+}
 .panel h3::after { content: ''; flex: 1; border-top: 1px solid var(--rule); }
-.panel .head { display: flex; align-items: flex-start; gap: 10px; }
+.panel .head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
 .panel .head .grow { flex: 1; min-width: 0; }
-.panel .subtitle { color: var(--ink-dim); font-size: 14px; margin-top: 2px; font-style: italic; }
+.panel .subtitle { color: var(--ink-dim); font-size: 14.5px; margin-top: 2px; font-style: italic; }
 .row { display: flex; align-items: center; gap: 8px; }
 .row.sp { justify-content: space-between; }
 .muted { color: var(--ink-mute); font-size: 14px; }
-.tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-.tag { font-size: 13px; padding: 3px 9px; border-radius: 99px; background: rgba(43, 26, 16, 0.08); border: 1px solid var(--rule); display: inline-flex; align-items: center; gap: 4px; color: var(--ink); }
-.tag.p { background: rgba(47, 143, 107, 0.16); border-color: rgba(47, 143, 107, 0.45); color: #1C5A43; } .tag.d { background: rgba(180, 83, 42, 0.14); border-color: rgba(180, 83, 42, 0.45); color: #7E3414; }
-.tag svg { width: 14px; height: 14px; }
-.bar { height: 8px; border-radius: 99px; background: rgba(43, 26, 16, 0.12); overflow: hidden; box-shadow: inset 0 1px 2px rgba(43, 26, 16, 0.2); }
-.bar > i { display: block; height: 100%; background: linear-gradient(90deg, #92401C, var(--terra-hi)); border-radius: 99px; transition: width .25s; }
-table.goods { width: 100%; border-collapse: collapse; font-size: 14px; }
-table.goods th { text-align: right; color: var(--ink-mute); font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; padding: 4px; border-bottom: 1px solid rgba(78, 53, 36, 0.5); }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag {
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(43, 26, 16, 0.08);
+  border: 1px solid var(--rule);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.tag.p { background: rgba(31, 122, 99, 0.16); border-color: rgba(31, 122, 99, 0.45); color: #135242; }
+.tag.d { background: rgba(180, 83, 42, 0.16); border-color: rgba(180, 83, 42, 0.45); color: #782F12; }
+.tag svg { width: 15px; height: 15px; }
+
+.bar {
+  height: 9px;
+  border-radius: 99px;
+  background: rgba(43, 26, 16, 0.14);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(43, 26, 16, 0.25);
+}
+.bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #9C3D16, var(--terra-hi));
+  border-radius: 99px;
+  transition: width .25s ease;
+}
+
+/* Trading Goods Table: High scanability & touch targets */
+table.goods { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14.5px; margin-top: 4px; }
+table.goods th {
+  text-align: right;
+  color: var(--ink-mute);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 6px 6px;
+  border-bottom: 2px solid rgba(78, 53, 36, 0.45);
+}
 table.goods th:first-child, table.goods td:first-child { text-align: left; }
-table.goods td { padding: 5px 4px; text-align: right; border-top: 1px dotted rgba(78, 53, 36, 0.4); white-space: nowrap; }
-table.goods tr[data-g]:hover td { background: rgba(180, 83, 42, 0.08); }
-table.goods td.g { display: flex; align-items: center; gap: 6px; font-weight: 700; }
-.gi { width: 22px; height: 22px; flex: none; }
-.up { color: var(--good); } .dn { color: var(--bad); }
-.arrow { width: 12px; height: 12px; vertical-align: -1px; }
-.trade { padding: 9px; margin: 4px 0 6px; border-radius: 8px; background: rgba(255, 250, 235, 0.55); border: 1px dashed rgba(78, 53, 36, 0.45); }
-.trade input[type=range] { width: 100%; accent-color: var(--terra); height: 28px; }
-.trade .preview { font-size: 13px; color: var(--ink-dim); min-height: 16px; }
+table.goods td {
+  padding: 8px 6px;
+  text-align: right;
+  border-top: 1px dotted rgba(78, 53, 36, 0.35);
+  white-space: nowrap;
+}
+table.goods tr[data-g] {
+  transition: background .15s ease;
+  border-radius: 6px;
+}
+table.goods tr[data-g]:hover td { background: rgba(180, 83, 42, 0.1); }
+table.goods td.g { display: flex; align-items: center; gap: 7px; font-weight: 700; }
+.gi { width: 24px; height: 24px; flex: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
+.up { color: var(--good); }
+.dn { color: var(--bad); }
+.arrow { width: 14px; height: 14px; vertical-align: -2px; }
+
+/* Inked Trade Action Box */
+.trade {
+  padding: 12px 14px;
+  margin: 6px 0 8px;
+  border-radius: 10px;
+  background: rgba(255, 252, 242, 0.7);
+  border: 1px solid rgba(78, 53, 36, 0.35);
+  box-shadow: inset 0 1px 4px rgba(78, 53, 36, 0.08);
+}
+.trade input[type=range] {
+  width: 100%;
+  accent-color: var(--terra);
+  height: 36px;
+  cursor: pointer;
+}
+.trade .preview {
+  font-size: 14px;
+  color: var(--ink-dim);
+  min-height: 20px;
+  padding: 4px 0;
+  line-height: 1.4;
+}
 .trade .preview b { color: var(--ink); }
 .trade .preview .warn { color: var(--bad); font-weight: 700; }
-.card { padding: 10px; border-radius: 8px; background: rgba(255, 250, 235, 0.5); border: 1px solid var(--rule); margin-bottom: 6px; font-size: 14px; }
-.card .t { font-weight: 700; display: flex; gap: 6px; align-items: center; }
-.cargo { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 10px; font-size: 14px; align-items: center; }
-.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; font-size: 14px; align-items: center; }
-.stepper { display: inline-flex; gap: 4px; align-items: center; }
-.citybtns { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 252, 242, 0.6);
+  border: 1px solid var(--rule);
+  margin-bottom: 8px;
+  font-size: 14.5px;
+  box-shadow: 0 2px 6px rgba(43, 22, 8, 0.06);
+}
+.card .t { font-weight: 700; display: flex; gap: 8px; align-items: center; }
+.cargo { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 12px; font-size: 14.5px; align-items: center; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; font-size: 14.5px; align-items: center; }
+.stepper { display: inline-flex; gap: 6px; align-items: center; }
+.citybtns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .close { margin-left: auto; }
-.panel .row svg, .panel .kv svg, .panel .card svg, .panel h3 svg, .modal .card svg { width: 18px; height: 18px; flex: none; }
-.panel .row > svg, .panel .kv > .row > svg { color: #8E3B1C; }
+.panel .row svg, .panel .kv svg, .panel .card svg, .panel h3 svg, .modal .card svg { width: 20px; height: 20px; flex: none; }
+.panel .row > svg, .panel .kv > .row > svg { color: #8C3714; }
 .panel .btn svg { width: 18px; height: 18px; }
 
-/* caravan chips */
-#cvBar { position: fixed; left: 8px; bottom: 34px; z-index: 14; display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 16px); }
-#cvBar .btn.on { box-shadow: 0 0 0 3px var(--lantern), 0 2px 0 var(--leather2); }
-#cvBar .btn .dot { width: 9px; height: 9px; border-radius: 50%; background: #6FD49A; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); }
-#cvBar .btn .dot.road { background: var(--lantern); } #cvBar .btn .dot.night { background: #8E9CF0; }
-#hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 30px; z-index: 16; padding: 10px 14px; font-size: 14px; color: var(--ink-dim); max-width: 380px; font-style: italic; }
-#footer { position: fixed; left: 0; right: 0; bottom: 6px; text-align: center; font-size: 12.5px; color: var(--cream); z-index: 13; pointer-events: none; text-shadow: 0 1px 2px #000c, 0 0 6px #0008; }
+/* =================================================================================================
+   BOTTOM-LEFT FLEET DOCK (#cvBar): ARTICULATED CARAVAN EXPEDITION DECK
+   ================================================================================================= */
+#cvBar {
+  position: fixed;
+  left: 14px;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: min(340px, calc(100% - 28px));
+  pointer-events: none;
+}
+.cv-fleet-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--display);
+  font-size: 13.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--cream);
+  text-shadow: 0 1px 3px #000c;
+  padding-left: 2px;
+}
+.cv-fleet-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  pointer-events: auto;
+}
+#cvBar .btn {
+  padding: 0 14px;
+  min-height: 44px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+#cvBar .btn.on {
+  box-shadow: 0 0 0 3px var(--gold-bright), 0 4px 12px rgba(245, 176, 65, 0.45);
+  border-color: #F5B041;
+}
+#cvBar .btn .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #4ADE80;
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.6), 0 0 6px #4ADE80;
+}
+#cvBar .btn .dot.road { background: var(--gold-bright); box-shadow: 0 0 0 1.5px rgba(0,0,0,0.6), 0 0 6px #FDD835; }
+#cvBar .btn .dot.night { background: #818CF8; box-shadow: 0 0 0 1.5px rgba(0,0,0,0.6), 0 0 6px #818CF8; }
+.cv-pill-sub {
+  font-size: 12px;
+  color: var(--cream-dim);
+  font-weight: normal;
+  margin-left: 2px;
+  opacity: .9;
+}
 
-/* world labels: inked map tags */
+#hint {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 26px;
+  z-index: 16;
+  padding: 10px 18px;
+  font-size: 14px;
+  color: var(--ink-dim);
+  max-width: 420px;
+  font-style: italic;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+#footer {
+  position: fixed;
+  left: 0; right: 0; bottom: 6px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--cream);
+  z-index: 13;
+  pointer-events: none;
+  text-shadow: 0 1px 3px #000c, 0 0 8px #000a;
+}
+
+/* =================================================================================================
+   WORLD LABELS: SELÇUKLU ARCHED CARTOUCHES & PORCELAIN PIPS
+   ================================================================================================= */
 #labels { position: fixed; inset: 0; pointer-events: none; z-index: 10; overflow: hidden; }
-.lbl { position: absolute; left: 0; top: 0; transform: translate(-50%, -100%); white-space: nowrap; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px;
-  border-radius: 4px; background: rgba(246, 233, 204, 0.94); border: 1px solid #6E4A2C; color: var(--ink); font-family: var(--display); font-size: 14.5px; letter-spacing: .03em;
-  box-shadow: 0 2px 5px rgba(43, 22, 8, 0.35), inset 0 0 0 2px rgba(246, 233, 204, 0.9), inset 0 0 0 3px rgba(78, 53, 36, 0.3); }
-.lbl.sel { background: var(--terra); color: #FFF6E6; border-color: #6E2C10; box-shadow: 0 2px 6px rgba(43, 22, 8, 0.4); }
-.lbl .pip { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(43, 26, 16, 0.55); }
-.lbl svg { width: 16px; height: 16px; }
-.lbl.han { font-family: var(--font); font-size: 12px; font-weight: 700; padding: 2px 7px; background: rgba(246, 233, 204, 0.8); letter-spacing: 0; }
-.lbl.han.own { background: #F6E1B8; border-color: var(--terra); color: #7E3414; }
-.lbl.eta { pointer-events: none; background: var(--indigo); color: #FFE3B8; border-color: #0D1024; font-family: var(--font); font-size: 13px; font-weight: 700; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
-.lbl.warn { pointer-events: none; background: #8E2A16; color: #FFE8DA; border-color: #4E1206; font-family: var(--font); font-size: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
-@media (pointer: coarse) { .lbl { min-height: 44px; padding: 8px 14px; } .lbl.han { min-height: 44px; } table.goods td { padding: 12px 4px; } .trade input[type=range] { height: 44px; } }
+.lbl {
+  position: absolute;
+  left: 0; top: 0;
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 6px;
+  background: rgba(248, 238, 216, 0.96);
+  border: 1px solid #633F22;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 15px;
+  letter-spacing: .03em;
+  box-shadow: 0 4px 12px rgba(22, 10, 4, 0.45),
+              inset 0 0 0 2px rgba(252, 244, 226, 0.95),
+              inset 0 0 0 3px rgba(99, 63, 34, 0.35);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.lbl:hover {
+  transform: translate(-50%, -105%) scale(1.05);
+  box-shadow: 0 6px 18px rgba(22, 10, 4, 0.55), 0 0 0 2px var(--gold);
+}
+.lbl.sel {
+  background: linear-gradient(180deg, #D46637, var(--terra));
+  color: #FFFDF9;
+  border-color: #5E2209;
+  box-shadow: 0 4px 14px rgba(36, 14, 4, 0.55), 0 0 0 2px var(--gold-bright);
+}
+.lbl .pip {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px rgba(43, 26, 16, 0.65), 0 1px 3px rgba(0,0,0,0.4);
+}
+.lbl svg { width: 17px; height: 17px; }
 
-/* screens + modals */
-.screen { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; }
-#title { background: radial-gradient(ellipse at 50% 45%, rgba(43, 26, 16, 0.02), rgba(43, 26, 16, 0.24)); }
-#title .box { position: relative; width: min(560px, 100%); padding: 26px 30px 18px; text-align: center; max-height: 100%; overflow: auto; }
-#title .box::before, #title .box::after { content: ''; position: absolute; width: 46px; height: 46px; pointer-events: none; border: 2px solid rgba(142, 59, 28, 0.55); }
-#title .box::before { left: 10px; top: 10px; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
-#title .box::after { right: 10px; bottom: 10px; border-left: none; border-top: none; border-radius: 0 0 8px 0; }
-#title .logo svg { width: 124px; height: 124px; filter: drop-shadow(0 3px 3px rgba(43, 22, 8, 0.3)); }
-#title h1 { font-family: var(--display); font-weight: 400; font-size: 66px; margin: 2px 0 0; color: #8E3B1C; letter-spacing: .06em; line-height: 1; }
-#title .tag1 { color: var(--ink-dim); margin: 8px 0 14px; font-size: 17px; font-style: italic; }
-#title .tag1::before, #title .tag1::after { content: ''; display: inline-block; width: 38px; border-top: 1px solid rgba(78, 53, 36, 0.5); vertical-align: middle; margin: 0 10px; }
-#title .how { text-align: left; font-size: 15px; color: var(--ink-dim); background: rgba(255, 250, 235, 0.45); border: 1px dashed rgba(78, 53, 36, 0.4); border-radius: 8px; padding: 10px 14px 10px 34px; margin: 0 0 14px; line-height: 1.5; }
-#title .how li { margin: 2px 0; }
+/* Caravanserai (Han) Labels */
+.lbl.han {
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  background: rgba(245, 233, 208, 0.88);
+  border-color: #7A5332;
+  letter-spacing: 0;
+}
+.lbl.han.own {
+  background: linear-gradient(180deg, #FBEBC7, #F2D89C);
+  border-color: var(--terra);
+  color: #732C0D;
+  box-shadow: 0 3px 10px rgba(43, 22, 8, 0.4), 0 0 0 1px var(--gold);
+}
+.lbl.eta {
+  pointer-events: none;
+  background: var(--indigo);
+  color: #FFE6BC;
+  border-color: #0A0D1F;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--gold);
+}
+.lbl.warn {
+  pointer-events: none;
+  background: #8E2412;
+  color: #FFEAE0;
+  border-color: #481005;
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+@media (pointer: coarse) {
+  .lbl { min-height: 44px; padding: 8px 14px; }
+  .lbl.han { min-height: 44px; padding: 8px 14px; }
+  table.goods td { padding: 12px 6px; }
+  .trade input[type=range] { height: 44px; }
+}
+
+/* =================================================================================================
+   TITLE SCREEN & MODALS: IMPERIAL SELÇUKLU PORTAL ARCHITECTURE
+   ================================================================================================= */
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#title { background: radial-gradient(ellipse at 50% 45%, rgba(43, 26, 16, 0.05), rgba(20, 10, 4, 0.45)); }
+#title .box {
+  position: relative;
+  width: min(600px, 100%);
+  padding: 32px 36px 24px;
+  text-align: center;
+  max-height: 96vh;
+  overflow-y: auto;
+}
+#title .box::before, #title .box::after {
+  content: '';
+  position: absolute;
+  width: 52px; height: 52px;
+  pointer-events: none;
+  border: 2px solid rgba(142, 59, 28, 0.65);
+}
+#title .box::before { left: 12px; top: 12px; border-right: none; border-bottom: none; border-radius: 10px 0 0 0; }
+#title .box::after { right: 12px; bottom: 12px; border-left: none; border-top: none; border-radius: 0 0 10px 0; }
+#title .logo svg { width: 130px; height: 130px; filter: drop-shadow(0 4px 6px rgba(43, 22, 8, 0.35)); }
+#title h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 70px;
+  margin: 4px 0 0;
+  color: #8C3714;
+  letter-spacing: .07em;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 235, 205, 0.5);
+}
+#title .tag1 {
+  color: var(--ink-dim);
+  margin: 10px 0 18px;
+  font-size: 17.5px;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+#title .tag1::before, #title .tag1::after {
+  content: '۞';
+  color: var(--gold-dark);
+  font-size: 14px;
+  font-style: normal;
+}
+#title .how {
+  text-align: left;
+  font-size: 14.5px;
+  color: var(--ink-dim);
+  background: rgba(255, 252, 242, 0.65);
+  border: 1px dashed rgba(78, 53, 36, 0.45);
+  border-radius: 10px;
+  padding: 12px 18px 12px 40px;
+  margin: 0 0 18px;
+  line-height: 1.55;
+}
+#title .how li { margin: 4px 0; }
 #title .how li::marker { color: var(--terra); }
-#title .menu { display: grid; gap: 9px; }
-#title .menu .btn { min-height: 50px; font-size: 17px; }
-#title .best { margin-top: 10px; font-size: 14px; color: var(--ink-mute); }
+#title .menu { display: grid; gap: 10px; }
+#title .menu .btn { min-height: 52px; font-size: 17.5px; }
+#title .best {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--ink-mute);
+  padding: 6px 12px;
+  background: rgba(43, 26, 16, 0.05);
+  border-radius: 6px;
+  display: inline-block;
+}
 #title .load { margin-top: 10px; font-size: 14px; color: var(--ink-mute); }
-.modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(27, 31, 59, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-.modal .box { width: min(520px, 100%); max-height: 100%; overflow: auto; padding: 24px; animation: pin .2s ease-out; }
-.modal .box.wide { width: min(760px, 100%); }
-.modal h2 { font-family: var(--display); font-weight: 400; color: #8E3B1C; margin: 0 0 12px; font-size: 34px; text-align: center; letter-spacing: .03em; }
-.modal h2::after { content: ''; display: block; width: 120px; height: 7px; margin: 8px auto 0; background: radial-gradient(circle, #8E3B1C 2px, transparent 2.5px) center / 12px 7px repeat-x; opacity: .6; }
-.modal .menu { display: grid; gap: 9px; margin-top: 14px; }
-.modal .menu .btn { min-height: 48px; font-size: 16px; }
-.set { display: grid; grid-template-columns: 130px 1fr 44px; gap: 10px; align-items: center; margin: 10px 0; font-weight: 700; font-size: 15px; }
-.set input[type=range] { width: 100%; accent-color: var(--terra); height: 32px; }
-.stars { display: flex; justify-content: center; gap: 6px; margin: 4px 0 10px; }
-.stars svg { width: 46px; height: 46px; }
-.bigstat { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 10px 0; }
-.bigstat div { background: rgba(255, 250, 235, 0.5); border: 1px solid var(--rule); border-radius: 8px; padding: 10px; text-align: center; }
-.bigstat b { display: block; font-size: 23px; color: var(--ink); font-family: var(--display); font-weight: 400; }
-.bigstat span { font-size: 12px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: .08em; }
-.record { text-align: center; color: #8E3B1C; font-weight: 800; letter-spacing: .14em; }
-canvas.chart { width: 100%; height: 180px; display: block; background: rgba(255, 250, 235, 0.45); border: 1px solid var(--rule); border-radius: 8px; }
-.legend { display: flex; gap: 14px; font-size: 13px; color: var(--ink-dim); margin: 6px 0; }
-.legend i { display: inline-block; width: 14px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
-.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-#debug { position: fixed; left: 10px; bottom: 90px; z-index: 60; font: 12px/1.4 ui-monospace, Consolas, monospace; background: rgba(0, 0, 0, 0.72); color: #9FE89A; padding: 8px 10px; border-radius: 8px; pointer-events: none; white-space: pre; max-width: 60vw; }
-#fatal { position: fixed; inset: auto 10px 10px 10px; z-index: 70; padding: 12px; color: #fff; background: #7A1E12; border-radius: 10px; font-size: 14px; }
-/* accessibility: respect user preference for reduced motion */
+.cont-sub { font-size: 13.5px; opacity: .88; font-weight: normal; margin-left: 4px; }
+
+/* Modal Architecture */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(22, 26, 48, 0.55);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+.modal .box {
+  width: min(540px, 100%);
+  max-height: 94vh;
+  overflow-y: auto;
+  padding: 28px 30px;
+  animation: panel-in .22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal .box.wide { width: min(780px, 100%); }
+.modal h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  color: #8C3714;
+  margin: 0 0 14px;
+  font-size: 34px;
+  text-align: center;
+  letter-spacing: .03em;
+}
+.modal h2::after {
+  content: '۞ ۞ ۞';
+  display: block;
+  font-size: 12px;
+  color: var(--gold-dark);
+  letter-spacing: .6em;
+  text-indent: .6em;
+  margin: 6px auto 0;
+  opacity: .85;
+}
+.modal .menu { display: grid; gap: 10px; margin-top: 16px; }
+.modal .menu .btn { min-height: 48px; font-size: 16.5px; }
+.set {
+  display: grid;
+  grid-template-columns: 140px 1fr 44px;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 0;
+  font-weight: 700;
+  font-size: 15px;
+}
+.set input[type=range] { width: 100%; accent-color: var(--terra); height: 34px; cursor: pointer; }
+.stars { display: flex; justify-content: center; gap: 8px; margin: 6px 0 12px; }
+.stars svg { width: 48px; height: 48px; filter: drop-shadow(0 2px 4px rgba(180, 83, 42, 0.35)); }
+.bigstat {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.bigstat div {
+  background: rgba(255, 252, 242, 0.65);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(43, 22, 8, 0.05);
+}
+.bigstat b { display: block; font-size: 24px; color: var(--ink); font-family: var(--display); font-weight: 400; }
+.bigstat span { font-size: 12px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.record {
+  text-align: center;
+  color: #8C3714;
+  font-weight: 800;
+  letter-spacing: .16em;
+  font-size: 15px;
+  padding: 4px;
+  border-top: 1px dashed var(--gold-dark);
+  border-bottom: 1px dashed var(--gold-dark);
+  margin: 8px 0;
+}
+canvas.chart {
+  width: 100%;
+  height: 190px;
+  display: block;
+  background: rgba(255, 252, 242, 0.65);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+}
+.legend { display: flex; gap: 16px; font-size: 13.5px; color: var(--ink-dim); margin: 8px 0; }
+.legend i { display: inline-block; width: 16px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* Pause modal quick controls cheatsheet */
+.pause-keys {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 252, 242, 0.5);
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+.key-row { display: flex; align-items: center; gap: 8px; }
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11.5px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-weight: 700;
+  color: var(--cream);
+  background: var(--leather);
+  border: 1px solid var(--leather2);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 var(--leather2);
+}
+
+#debug {
+  position: fixed;
+  left: 12px; bottom: 85px;
+  z-index: 60;
+  font: 12px/1.4 ui-monospace, Consolas, monospace;
+  background: rgba(10, 12, 20, 0.85);
+  color: #A3E635;
+  padding: 10px 12px;
+  border-radius: 10px;
+  pointer-events: none;
+  white-space: pre;
+  max-width: 60vw;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+#fatal { position: fixed; inset: auto 12px 12px 12px; z-index: 70; padding: 14px; color: #fff; background: #7A1E12; border-radius: 10px; font-size: 14px; }
+
+/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;
@@ -212,40 +887,77 @@ canvas.chart { width: 100%; height: 180px; display: block; background: rgba(255,
   }
 }
 
+/* =================================================================================================
+   RESPONSIVE DESIGN & MOBILE PHONE OPTIMIZATIONS
+   ================================================================================================= */
 @media (max-width: 760px) {
-  #hud { top: 6px; left: 6px; right: 6px; flex-wrap: wrap; gap: 6px; padding: 6px; }
+  #hud {
+    top: 6px; left: 6px; right: 6px;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+  }
   #hud .brand span { display: none; }
   #hud .brand svg { width: 30px; height: 30px; }
-  #hud .stats { order: 3; width: 100%; justify-content: flex-start; gap: 4px; flex: 1 1 100%; }
+  #hud .hud-brand-date { flex: 1; justify-content: flex-start; }
+  #hud .stats {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+    flex: 1 1 100%;
+  }
   #hud .tools { margin-left: auto; gap: 4px; }
-  .chip { height: 32px; padding: 0 8px; font-size: 14px; }
+  .chip { height: 36px; padding: 0 9px; font-size: 13.5px; }
   .chip .sub { display: none; }
   .chip.opt { display: none; }
-  #toasts { top: 116px; }
-  .panel, .panel.right { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 58%; border-radius: 16px 16px 0 0; z-index: 25; padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); }
-  #cvBar { bottom: 28px; }
+  #toasts { top: 120px; right: 8px; width: min(360px, calc(100% - 16px)); }
+  .panel, .panel.right {
+    top: auto; bottom: 0; left: 0; right: 0;
+    width: auto; max-height: 60%;
+    border-radius: 18px 18px 0 0;
+    z-index: 25;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  }
+  #cvBar {
+    left: 8px;
+    bottom: calc(26px + env(safe-area-inset-bottom));
+  }
   #hint { display: none; }
-  #title .box { padding: 22px 18px 16px; }
-  #title h1 { font-size: 50px; }
-  #title .logo svg { width: 92px; height: 92px; }
+  #title .box { padding: 24px 20px 18px; }
+  #title h1 { font-size: 52px; }
+  #title .logo svg { width: 96px; height: 96px; }
   .cols { grid-template-columns: 1fr; }
-  .set { grid-template-columns: 96px 1fr 40px; }
+  .set { grid-template-columns: 100px 1fr 40px; }
+  .pause-keys { grid-template-columns: 1fr; }
 }
-@media (max-width: 420px) { .seg .btn, #hud .seg .btn { padding: 0 6px; } #hud .tools .opt { display: none; } }
+
+@media (max-width: 420px) {
+  .seg .btn, #hud .seg .btn { padding: 0 7px; }
+  #hud .tools .opt { display: none; }
+  .chip { padding: 0 6px; font-size: 13px; gap: 4px; }
+  .chip svg { width: 18px; height: 18px; }
+}
+
 @media (max-height: 500px) and (min-width: 761px) {
-  #hud { top: 4px; left: 4px; right: 4px; padding: 4px 6px 4px 8px; gap: 6px; }
+  #hud { top: 4px; left: 4px; right: 4px; padding: 4px 8px; gap: 6px; }
   #hud .brand span, .chip .sub, .chip.opt, #hud .tools .opt { display: none; }
-  #hud .stats { justify-content: flex-start; gap: 4px; }
-  .chip { padding: 0 8px; }
+  #hud .stats { justify-content: flex-start; gap: 5px; }
+  .chip { padding: 0 9px; }
   #toasts { top: 62px; }
-  .panel, .panel.right { top: 60px; bottom: 4px; max-height: none; width: 360px; }
-  .panel.left { left: 4px; } .panel.right { right: 4px; width: 400px; }
-  #cvBar { bottom: 24px; }
+  .panel, .panel.right { top: 58px; bottom: 4px; max-height: none; width: 380px; }
+  .panel.left { left: 4px; }
+  .panel.right { right: 4px; width: 420px; }
+  #cvBar { bottom: 20px; }
   #hint { display: none; }
-  #title .box { padding: 14px 22px 12px; }
-  #title .logo svg { width: 58px; height: 58px; } #title h1 { font-size: 40px; } #title .tag1 { margin: 4px 0 8px; } #title .how { display: none; }
+  #title .box { padding: 14px 24px 12px; }
+  #title .logo svg { width: 60px; height: 60px; }
+  #title h1 { font-size: 42px; }
+  #title .tag1 { margin: 4px 0 8px; }
+  #title .how { display: none; }
   #title .menu .btn { min-height: 44px; }
-  .modal .box { padding: 16px; } .modal h2 { font-size: 28px; margin-bottom: 6px; }
+  .modal .box { padding: 18px; }
+  .modal h2 { font-size: 28px; margin-bottom: 6px; }
 }
 </style>
 <script data-goatcounter="https://furkiozknn.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
@@ -2113,8 +2825,15 @@ const STR = {
     hintSelected: 'Now click the city to send it to. The route and ETA are shown.',
     banditsHere: 'Bandits', stars: 'stars', auto: 'Autoplay', yes: 'Yes', no: 'No',
     produced: 'produces', wanted: 'wants', none: '—',
+    fleet: 'Caravan Fleet', chronicle: 'Chronicle', saveSummary: 'Saved: Day {d} · {a} akçe',
+    keyPan: 'Pan map', keyZoom: 'Zoom in / out', keyCaravan: 'Select caravan', keySpeed: 'Sim speed', controlsHelp: 'Keyboard Controls',
   },
 };
+// Add Turkish extra strings
+Object.assign(STR.tr, {
+  fleet: 'Kervan Filosu', chronicle: 'Tarih & Mevsim', saveSummary: 'Kayıt: {d}. gün · {a} akçe',
+  keyPan: 'Haritayı kaydır', keyZoom: 'Yakınlaş / Uzaklaş', keyCaravan: 'Kervan seç', keySpeed: 'Oyun hızı', controlsHelp: 'Klavye Kısayolları',
+});
 function t(key, p) {
   const L = STR[settings.lang] || STR.tr;
   let s = key.split('.').reduce((o, k) => (o == null ? o : o[k]), L);
@@ -2131,42 +2850,51 @@ const roadName = (rid) => { const r = ROAD_BY_ID[rid]; return cityName(r.a) + '�
 const fmtEta = (hours) => hours >= 20 ? t('days', { n: fmt1(hours / 24) }) : t('hours', { n: Math.max(1, Math.round(hours)) });
 
 // ------------------------------------------------------------------------------------------------
-// icons: inline SVG, drawn (no emoji)
+// icons: inline SVG, handcrafted with Seljuk geometric & architectural motifs (no emoji)
 // ------------------------------------------------------------------------------------------------
 const sv = (inner, vb = '0 0 24 24', extra = '') => `<svg viewBox="${vb}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${inner}</svg>`;
 const ICON = {
-  coin: sv('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5" stroke-width="1.2"/><path d="M12 9.5v5M10 12h4" stroke-width="1.4"/>'),
+  // Minted Seljuk Akçe / Dirham medallion
+  coin: sv('<circle cx="12" cy="12" r="9" stroke-width="1.8"/><circle cx="12" cy="12" r="6" stroke-width="1.2" stroke-dasharray="2 1.5"/><path d="M12 8.5v7M9.5 12h5" stroke-width="1.5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>'),
+  // Majestic Anatolian camel silhouette
   camel: sv('<path d="M2.5 13.5c1.2-.2 1.6-1.7 2.6-2.6.9-.8 2.4-.7 3.1.4.6-2.2 2.3-3.3 3.8-3.3 1.6 0 2.6 1.6 3 3.4l1.3-2.6c.4-.8 1.2-1.3 2.1-1.2l1.9.3-.6 1.4-1.5.2-1.3 4.5c-.3 1-1.2 1.6-2.2 1.6H8.4"/><path d="M7.5 15.6V20M10 15.6l-.6 4.4M15 15.4V20M17 14.6l.8 5.4"/>'),
-  han: sv('<path d="M3 20V9l9-5 9 5v11"/><path d="M3 20h18"/><path d="M9.5 20v-5a2.5 2.5 0 0 1 5 0v5"/><path d="M6 11h1M17 11h1"/>'),
-  rep: sv('<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8-4.3-4.1 5.9-.9z"/>'),
+  // Seljuk Caravanserai Taç Kapı (grand arch portal with bastions and dome)
+  han: sv('<path d="M2.5 20.5V9.5l4-2.5V5h11v2l4 2.5v11H2.5z"/><path d="M8 20.5v-6.5a4 4 0 0 1 8 0v6.5"/><path d="M12 5V2.5"/><path d="M2.5 12h4M17.5 12h4"/><circle cx="12" cy="10" r="1.5" fill="currentColor"/>'),
+  // Seljuk 8-pointed star (Selçuklu Yıldızı)
+  rep: sv('<path d="M12 2.5l2.6 4.3 4.9-1.2-1.2 4.9 4.3 2.6-4.3 2.6 1.2 4.9-4.9-1.2L12 23.5l-2.6-4.3-4.9 1.2 1.2-4.9-4.3-2.6 4.3-2.6-1.2-4.9 4.9 1.2z" stroke-width="1.6"/>'),
   pause: sv('<path d="M8 5v14M16 5v14" stroke-width="2.6"/>'),
   play: sv('<path d="M7 5l12 7-12 7z" fill="currentColor"/>'),
   soundOn: sv('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>'),
   soundOff: sv('<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>'),
   music: sv('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>'),
   lang: sv('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17"/>'),
-  ledger: sv('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/>'),
+  ledger: sv('<path d="M5 3.5h11a3 3 0 0 1 3 3v14H8a3 3 0 0 1-3-3z"/><path d="M5 17.5a3 3 0 0 1 3-3h11M9 8h6M9 11.5h4"/>'),
   gear: sv('<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/>'),
   close: sv('<path d="M6 6l12 12M18 6L6 18" stroke-width="2.2"/>'),
   up: sv('<path d="M12 19V6M6 11l6-6 6 6" stroke-width="2.4"/>'),
   down: sv('<path d="M12 5v13M6 13l6 6 6-6" stroke-width="2.4"/>'),
   flat: sv('<path d="M5 12h14" stroke-width="2.4"/>'),
-  guard: sv('<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M12 8v8M9 11h6"/>'),
+  guard: sv('<path d="M12 2.5l7 3.5v5c0 5-3.5 8.5-7 10.5-3.5-2-7-5.5-7-10.5V6z"/><path d="M12 7.5v8.5M9 11h6"/>'),
   route: sv('<circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/><path d="M8 18h6.5a3.5 3.5 0 0 0 0-7h-5a3.5 3.5 0 0 1 0-7H16" stroke-dasharray="2.5 2.5"/>'),
-  clock: sv('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
-  sun: sv('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>'),
-  moon: sv('<path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/>'),
-  star: sv('<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2 6.4 20.2l1.1-6.3L2.9 9.5l6.3-.9z" fill="#E9B65C" stroke="#B45309"/>'),
-  starOff: sv('<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2 6.4 20.2l1.1-6.3L2.9 9.5l6.3-.9z" fill="rgba(43,26,16,.06)" stroke="#9A7A58"/>'),
-  plague: sv('<circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21M5.6 5.6l3.2 3.2M15.2 15.2l3.2 3.2M5.6 18.4l3.2-3.2M15.2 8.8l3.2-3.2"/>', '0 0 24 24', 'style="color:#C4E07A"'),
-  festival: sv('<path d="M4 20l5-13 8 8z"/><path d="M14 4l1 2M19 6l-2 1M20 11l-2-.5M11 3.5l.3 2"/>', '0 0 24 24', 'style="color:#F4C25B"'),
-  bandit: sv('<path d="M12 3c-4 0-7 3-7 7v2h14v-2c0-4-3-7-7-7z"/><path d="M5 12l2 8h10l2-8"/><path d="M8.5 9.5h2M13.5 9.5h2"/>', '0 0 24 24', 'style="color:#F08A6A"'),
+  clock: sv('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.5 2"/>'),
+  sun: sv('<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>'),
+  moon: sv('<path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/><circle cx="15" cy="7.5" r="1" fill="#FFB347"/>'),
+  // Glowing Seljuk 8-pointed gold star
+  star: sv('<path d="M12 2l2.6 4.3 4.9-1.2-1.2 4.9 4.3 2.6-4.3 2.6 1.2 4.9-4.9-1.2L12 23l-2.6-4.3-4.9 1.2 1.2-4.9-4.3-2.6 4.3-2.6-1.2-4.9 4.9 1.2z" fill="#F5B041" stroke="#B45309" stroke-width="1.4"/>'),
+  starOff: sv('<path d="M12 2l2.6 4.3 4.9-1.2-1.2 4.9 4.3 2.6-4.3 2.6 1.2 4.9-4.9-1.2L12 23l-2.6-4.3-4.9 1.2 1.2-4.9-4.3-2.6 4.3-2.6-1.2-4.9 4.9 1.2z" fill="rgba(43,26,16,.08)" stroke="#8A6E52" stroke-width="1.2"/>'),
+  plague: sv('<circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21M5.6 5.6l3.2 3.2M15.2 15.2l3.2 3.2M5.6 18.4l3.2-3.2M15.2 8.8l3.2-3.2"/>', '0 0 24 24', 'style="color:#A3E635"'),
+  festival: sv('<path d="M4 20l5-13 8 8z"/><path d="M14 4l1 2M19 6l-2 1M20 11l-2-.5M11 3.5l.3 2"/>', '0 0 24 24', 'style="color:#F5B041"'),
+  bandit: sv('<path d="M4 5l6.5 6.5M13.5 14.5L20 21M4 21l6.5-6.5M13.5 9.5L20 5"/><path d="M10.5 11.5L9 8l-3 1.5 2.5 3.5M13.5 12.5L15 16l3-1.5-2.5-3.5"/>', '0 0 24 24', 'style="color:#F87171"'),
   plus: sv('<path d="M12 5v14M5 12h14" stroke-width="2.4"/>'),
   minus: sv('<path d="M5 12h14" stroke-width="2.4"/>'),
   full: sv('<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>'),
-  contract: sv('<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7"/>'),
+  contract: sv('<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h5"/><circle cx="16" cy="16.5" r="2" fill="#D97706" stroke="none"/>'),
   people: sv('<circle cx="9" cy="8" r="3"/><path d="M3.5 19c.8-3.4 3-5 5.5-5s4.7 1.6 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.2.1 3.8 1.6 4.5 4.3"/>'),
-  snow: sv('<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/><path d="M9.5 4.5L12 6l2.5-1.5M9.5 19.5L12 18l2.5 1.5"/>', '0 0 24 24', 'style="color:#CFE3F5"'),
+  snow: sv('<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/><path d="M9.5 4.5L12 6l2.5-1.5M9.5 19.5L12 18l2.5 1.5"/>', '0 0 24 24', 'style="color:#BAE6FD"'),
+  seasonSpring: sv('<path d="M12 22V10M12 10C8.5 7 7 3.5 12 2c5 1.5 3.5 5 0 8z"/><path d="M12 15c-3-1-5 0-6 2M12 12c3-1 5 0 6 2"/>', '0 0 24 24', 'style="color:#4ADE80"'),
+  seasonSummer: sv('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>', '0 0 24 24', 'style="color:#FBBF24"'),
+  seasonAutumn: sv('<path d="M12 2c-4 5-8 8.5-4 15 2.5 4 8 5 8 5s-1-4 1-7c2-3 1-9-5-13z"/><path d="M12 2v18"/>', '0 0 24 24', 'style="color:#FB923C"'),
+  seasonWinter: sv('<path d="M12 2v20M2 12h20M5 5l14 14M5 19L19 5"/><circle cx="12" cy="12" r="2" fill="currentColor"/>', '0 0 24 24', 'style="color:#93C5FD"'),
 };
 const GOOD_ICON = {
   silk: (c) => `<svg class="gi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7c3-3 13-3 16 0v10c-3 3-13 3-16 0z" fill="${c}"/><path d="M4 7c3 3 13 3 16 0M8 9.5v9M16 9.5v9" stroke="#fff6" stroke-width="1.2" fill="none"/></svg>`,
@@ -2178,14 +2906,43 @@ const GOOD_ICON = {
   ceramics: (c) => `<svg class="gi" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v3c3 1.5 4.5 4.5 4 8-.5 4-3.5 7-7 7s-6.5-3-7-7c-.5-3.5 1-6.5 4-8z" fill="${c}"/><path d="M7 12c2 1.5 8 1.5 10 0" stroke="#F2EADB" stroke-width="1.4" fill="none"/><circle cx="12" cy="15.5" r="1.4" fill="#F2EADB"/></svg>`,
 };
 const goodIcon = (g) => GOOD_ICON[g](ECONOMY.goods[g].color);
+
+// Grand Seljuk Caravanserai Taç Kapı & Golden-Hour Camel Caravan Logo
 const LOGO = `<svg viewBox="0 0 120 120" aria-hidden="true">
-  <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3C46E"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs>
-  <path d="M14 108V58C14 30 34 12 60 6c26 6 46 24 46 52v50z" fill="#2C1C10" stroke="url(#lg)" stroke-width="5"/>
-  <path d="M28 108V62c0-19 13-33 32-38 19 5 32 19 32 38v46" fill="none" stroke="#E9B65C" stroke-width="2.5" opacity=".7"/>
-  <circle cx="60" cy="58" r="15" fill="#E9B65C" opacity=".9"/>
-  <path d="M22 96c5-1 7-6 11-9 4-3 9-2 11 2 2-8 8-12 14-12s10 6 11 12l5-9c1.6-3 4.4-4.6 7.6-4.2l6.4 1-2 5-5 .6-4.8 15.6c-1 3.4-4.2 5.6-7.6 5.6H38" fill="#B45309" stroke="#2C1C10" stroke-width="1.5"/>
-  <path d="M36 101v7M44 101l-1.5 7M70 100v8M77 98l2.6 10" stroke="#B45309" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M14 108h92" stroke="url(#lg)" stroke-width="5" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="logoBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FCE19D"/>
+      <stop offset="55%" stop-color="#E29246"/>
+      <stop offset="100%" stop-color="#7B2D12"/>
+    </linearGradient>
+    <linearGradient id="goldArch" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF3C4"/>
+      <stop offset="45%" stop-color="#F5B041"/>
+      <stop offset="100%" stop-color="#8C4208"/>
+    </linearGradient>
+    <filter id="archGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#3D1806" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <!-- Seljuk Pointed Portal Frame (Taç Kapı) -->
+  <path d="M14 110V54C14 28 34 10 60 4c26 6 46 24 46 50v56z" fill="#241308" stroke="url(#goldArch)" stroke-width="4.5" filter="url(#archGlow)"/>
+  <!-- Interior Sunset Canvas -->
+  <path d="M22 108V57C22 34 38 18 60 12c22 6 38 22 38 45v51z" fill="url(#logoBg)"/>
+  <!-- Decorative Inner Inked Arch -->
+  <path d="M28 108V60c0-18 14-32 32-37 18 5 32 19 32 37v48" fill="none" stroke="#FFF5DA" stroke-width="1.8" stroke-dasharray="3 2" opacity=".85"/>
+  <!-- Anatolian Mountain Ridge Silhouette -->
+  <path d="M22 84l18-14 16 10 14-16 18 12 10-6v32H22z" fill="#6A280E" opacity=".7"/>
+  <!-- Golden Sun Disc -->
+  <circle cx="60" cy="50" r="14" fill="#FFF2BD" opacity=".95"/>
+  <!-- Seljuk 8-Pointed Star Rosette at Portal Zenith -->
+  <path d="M60 14l2.2 3.6 4.1-1-1 4.1 3.6 2.2-3.6 2.2 1 4.1-4.1-1L60 32l-2.2-3.6-4.1 1 1-4.1-3.6-2.2 3.6-2.2-1-4.1 4.1 1z" fill="#FDD835" stroke="#7A3208" stroke-width="0.8"/>
+  <!-- Desert Sand Dune Wave -->
+  <path d="M22 96c10-2 22 4 36-1s28-6 40 1v12H22z" fill="#441A09"/>
+  <!-- Marching Camel Caravan Silhouette -->
+  <path d="M26 95c4-.8 6-5 9-7 3.2-2.2 7-1.5 9 1.5 1.5-6 6-9 11-9s8 4 9 9l4-7c1.3-2.2 3.5-3.5 6-3.2l5 .8-1.5 4-4 .5-3.8 12c-.8 2.6-3.3 4.4-6 4.4H38" fill="#F5B041" stroke="#241308" stroke-width="1.2"/>
+  <path d="M37 99v9M44 99l-1.2 9M64 98v10M70 96l2 12" stroke="#F5B041" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Caravanserai Stone Foundation Baseline -->
+  <path d="M12 110h96" stroke="url(#goldArch)" stroke-width="5" stroke-linecap="round"/>
 </svg>`;
 
 // ------------------------------------------------------------------------------------------------
@@ -2955,12 +3712,13 @@ function fastForward(seconds) {
 // ------------------------------------------------------------------------------------------------
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-function toast(msg, kind = 'info', ms = 4200) {
+function toast(msg, kind = 'info', ms = 4500) {
   const box = $('toasts');
   while (box.children.length >= 4) box.firstChild.remove();
   const el = document.createElement('div');
   el.className = 'toast glass ' + kind;
-  el.innerHTML = (kind === 'bad' ? ICON.bandit : kind === 'good' ? ICON.star : ICON.clock) + '<span>' + esc(msg) + '</span>';
+  const icon = kind === 'bad' ? ICON.bandit : kind === 'good' ? ICON.star : ICON.contract;
+  el.innerHTML = icon + '<span>' + esc(msg) + '</span>';
   box.appendChild(el);
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 450); }, ms);
 }
@@ -2970,15 +3728,18 @@ function contractLine(c) { return t('contractLine', { qty: c.qty, good: goodName
 
 function buildHud() {
   const hud = $('hud');
-  hud.innerHTML = `<div class="brand">${LOGO}<span>Kervan</span></div>
-  <div class="stats">
-    <div class="chip" id="hDate" title="">${ICON.sun}<span></span></div>
-    <div class="chip" id="hAkce" title="${t('akce')}">${ICON.coin}<span></span></div>
-    <div class="chip" id="hCv" title="${t('caravans')}">${ICON.camel}<span></span></div>
-    <div class="chip" id="hHan" title="${t('hans')}">${ICON.han}<span></span></div>
-    <div class="chip opt" id="hRep" title="${t('rep')}">${ICON.rep}<span></span></div>
+  hud.innerHTML = `
+  <div class="hud-brand-date">
+    <div class="brand" title="Kervan">${LOGO}<span>Kervan</span></div>
+    <div class="chip date-chip" id="hDate" title="${t('chronicle')}">${ICON.sun}<span></span></div>
   </div>
-  <div class="tools">
+  <div class="stats hud-stats">
+    <div class="chip akce-chip" id="hAkce" title="${t('akce')}">${ICON.coin}<span></span></div>
+    <div class="chip cv-chip" id="hCv" title="${t('caravans')}">${ICON.camel}<span></span></div>
+    <div class="chip han-chip" id="hHan" title="${t('hans')}">${ICON.han}<span></span></div>
+    <div class="chip rep-chip opt" id="hRep" title="${t('rep')}">${ICON.rep}<span></span></div>
+  </div>
+  <div class="tools hud-tools">
     <div class="seg" role="group" aria-label="${t('speed')}">${SPEEDS.map((s, i) => `<button class="btn" data-speed="${i}" aria-label="${t('speed')} ${s}x">${s}x</button>`).join('')}</div>
     <button class="btn icon" id="bPause" aria-label="${t('pause')}" title="${t('pause')} (P)">${ICON.pause}</button>
     <button class="btn icon opt" id="bLedger" aria-label="${t('ledger')}" title="${t('ledger')}">${ICON.ledger}</button>
@@ -2998,29 +3759,50 @@ function updateHud() {
   if (!game.started) return;
   const S = sim.S;
   const night = sim.isNight();
+  const hudEl = $('hud');
+  if (hudEl) hudEl.classList.toggle('night', night);
+
   const dateEl = $('hDate');
-  if (dateEl && dateEl.dataset.n !== String(night)) { dateEl.dataset.n = night; dateEl.firstElementChild.outerHTML = night ? ICON.moon : ICON.sun; }
+  const seasonIcons = [ICON.seasonSpring, ICON.seasonSummer, ICON.seasonAutumn, ICON.seasonWinter];
+  const curIcon = night ? ICON.moon : (seasonIcons[sim.season] || ICON.sun);
+  if (dateEl && dateEl.dataset.n !== String(night) + sim.season) {
+    dateEl.dataset.n = String(night) + sim.season;
+    dateEl.firstElementChild.outerHTML = curIcon;
+  }
   setText('hDate', `${t('year', { n: sim.year })} · ${t('seasons')[sim.season]} <span class="sub">· ${t('day', { n: sim.dayOfSeason })}</span>`);
   setText('hAkce', fmt(S.akce) + ' <span class="sub">' + t('akce') + '</span>');
   $('hAkce').classList.toggle('neg', S.akce < 0);
-  setText('hCv', String(sim.playerCaravans().length));
-  setText('hHan', sim.ownedHans() + '/' + ECONOMY.goal.hans);
+  setText('hCv', String(sim.playerCaravans().length) + ' <span class="sub">' + t('caravans') + '</span>');
+  setText('hHan', sim.ownedHans() + '/' + ECONOMY.goal.hans + ' <span class="sub">' + t('hans') + '</span>');
   const avg = CITY_IDS.reduce((a, c) => a + S.rep[c], 0) / CITY_IDS.length;
-  setText('hRep', `${Math.round(avg)} <span class="sub">${t('repLevels')[repLevel(avg)]}</span>`);
+  const repLvl = repLevel(avg);
+  setText('hRep', `<b class="rep-badge lvl-${repLvl}">${Math.round(avg)}</b> <span class="sub">${t('repLevels')[repLvl]}</span>`);
   document.querySelectorAll('#hud [data-speed]').forEach((b) => b.classList.toggle('on', +b.dataset.speed === game.speedIdx && !FLAGS.speed));
   const sb = $('bSound');
   const sicon = settings.muted ? ICON.soundOff : ICON.soundOn;
   if (sb && sb.dataset.m !== String(settings.muted)) { sb.dataset.m = settings.muted; sb.innerHTML = sicon; }
 }
 
-// --- caravan bar ---
+// --- caravan fleet dock ---
 function renderCvBar() {
   if (!game.started) return;
   const bar = $('cvBar');
-  bar.innerHTML = sim.playerCaravans().map((cv) => {
+  const caravans = sim.playerCaravans();
+  const listHtml = caravans.map((cv) => {
     const st = cv.city ? '' : cv.halt ? 'night' : 'road';
-    return `<button class="btn ${game.selCv === cv.id ? 'on' : ''}" data-cv="${cv.id}" aria-label="${t('caravan', { n: cv.num })}"><i class="dot ${st}"></i>${ICON.camel}${cv.num}</button>`;
+    let label = '';
+    if (cv.city) label = cityName(cv.city);
+    else if (cv.halt === 'han') label = HAN_NAMES[cv.restHan];
+    else if (cv.halt === 'camp') label = t('camping');
+    else label = '→ ' + cityName(cv.dest);
+    const load = sim.cargoLoad(cv), cap = sim.capacity(cv);
+    return `<button class="btn ${game.selCv === cv.id ? 'on' : ''}" data-cv="${cv.id}" aria-label="${t('caravan', { n: cv.num })}" title="${t('caravan', { n: cv.num })}: ${label} (${load}/${cap})">
+      <i class="dot ${st}"></i>
+      ${ICON.camel}<b>${cv.num}</b>
+      <span class="cv-pill-sub">${label} (${load}/${cap})</span>
+    </button>`;
   }).join('');
+  bar.innerHTML = `<div class="cv-fleet-title">${ICON.route} <span>${t('fleet')}</span></div><div class="cv-fleet-list">${listHtml}</div>`;
   bar.querySelectorAll('[data-cv]').forEach((b) => b.onclick = () => { Sound.click(); selectCaravan(+b.dataset.cv, true); });
 }
 function selectCaravan(id, focus) {
@@ -3071,7 +3853,7 @@ function renderCvPanel() {
   let route = '';
   if (cv.path) {
     const stops = [cv.from || '', ...cv.path.segs.map((s) => { const r = ROAD_BY_ID[s.road]; return s.sgn > 0 ? r.b : r.a; })].filter(Boolean);
-    route = `<h3>${t('route')}</h3><div class="row" style="flex-wrap:wrap;gap:4px">${ICON.route}${stops.map((c) => `<span class="tag">${cityName(c)}</span>`).join('')}</div>`;
+    route = `<h3>${t('route')}</h3><div class="row" style="flex-wrap:wrap;gap:5px">${ICON.route}${stops.map((c) => `<span class="tag">${cityName(c)}</span>`).join('')}</div>`;
   }
   p.innerHTML = `<div class="head"><div class="grow"><h2>${t('caravan', { n: cv.num })}</h2><div class="subtitle">${status}${eta ? ' · <b>' + eta + '</b>' : ''}</div></div>
     <button class="btn icon close" id="cvClose" aria-label="${t('close')}">${ICON.close}</button></div>
@@ -3121,7 +3903,7 @@ function renderCity() {
     const buy = sim.buyPrice(id, g), sell = sim.sellPrice(id, g), h = m.hist[g], ref = h[Math.max(0, h.length - 4)] || h[0], now = sim.mid(id, g);
     const trend = now > ref * 1.03 ? `<svg class="arrow up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M6 11l6-6 6 6"/></svg>` : now < ref * 0.97 ? `<svg class="arrow dn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M6 13l6 6 6-6"/></svg>` : '';
     const have = cv ? cv.cargo[g] || 0 : 0;
-    const row = `<tr data-g="${g}" style="cursor:${cv ? 'pointer' : 'default'}" ${cv ? 'tabindex="0"' : ''}><td class="g">${goodIcon(g)}${goodName(g)}${roleOf(id, g) === 'P' ? '<span class="tag p" style="padding:1px 5px">P</span>' : roleOf(id, g) === 'D' ? '<span class="tag d" style="padding:1px 5px">D</span>' : ''}</td><td>${fmt1(buy)}</td><td>${fmt1(sell)} ${trend}</td><td class="muted">${Math.round(m.stock[g])}</td><td>${have || ''}</td></tr>`;
+    const row = `<tr data-g="${g}" style="cursor:${cv ? 'pointer' : 'default'}" ${cv ? 'tabindex="0"' : ''}><td class="g">${goodIcon(g)}${goodName(g)}${roleOf(id, g) === 'P' ? '<span class="tag p" style="padding:1px 6px">P</span>' : roleOf(id, g) === 'D' ? '<span class="tag d" style="padding:1px 6px">D</span>' : ''}</td><td>${fmt1(buy)}</td><td>${fmt1(sell)} ${trend}</td><td class="muted">${Math.round(m.stock[g])}</td><td>${have || ''}</td></tr>`;
     return row + (cv && openTrade && openTrade.g === g ? `<tr><td colspan="5">${tradeBox(cv, g)}</td></tr>` : '');
   }).join('');
   const offers = S.offers.filter((o) => o.city === id), active = S.contracts.filter((o) => o.city === id);
@@ -3164,10 +3946,22 @@ function renderCity() {
 }
 function tradeBox(cv, g) {
   const id = cv.city, have = cv.cargo[g] || 0, maxB = Math.min(sim.freeSpace(cv), sim.maxBuyable(id, g));
-  return `<div class="trade" id="tradeBox"><input type="range" id="tSlider" min="${-have}" max="${maxB}" step="1" value="${Math.max(-have, Math.min(maxB, openTrade.v))}" aria-label="${goodName(g)}">
-    <div class="row sp muted" style="font-size:11px"><span>${have ? t('sellN', { n: have }) : ''}</span><span>${t('buyN', { n: maxB })}</span></div>
+  return `<div class="trade" id="tradeBox">
+    <div class="row sp" style="margin-bottom:6px">
+      <span class="muted" style="font-size:12.5px">${t('cargo')}: <b>${have}</b></span>
+      <span class="muted" style="font-size:12.5px">${t('capacity')}: <b>${sim.freeSpace(cv)}</b> ${t('empty')}</span>
+    </div>
+    <input type="range" id="tSlider" min="${-have}" max="${maxB}" step="1" value="${Math.max(-have, Math.min(maxB, openTrade.v))}" aria-label="${goodName(g)}">
+    <div class="row sp muted" style="font-size:12px"><span>${have ? t('sellN', { n: have }) : ''}</span><span>${t('buyN', { n: maxB })}</span></div>
     <div class="preview" id="tPrev"></div>
-    <div class="row" style="gap:6px;margin-top:6px"><button class="btn sm" id="tAllSell" ${have ? '' : 'disabled'}>${t('sellAll')}</button><button class="btn sm" id="tMaxBuy" ${maxB ? '' : 'disabled'}>${t('maxBuy')}</button><button class="btn sm primary" id="tApply" style="margin-left:auto">${t('apply')}</button></div></div>`;
+    <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">
+      <button class="btn sm" id="tAllSell" ${have ? '' : 'disabled'}>${t('sellAll')}</button>
+      <button class="btn sm" id="tSub5" ${have >= 5 ? '' : 'disabled'}>-5</button>
+      <button class="btn sm" id="tAdd5" ${maxB >= 5 ? '' : 'disabled'}>+5</button>
+      <button class="btn sm" id="tMaxBuy" ${maxB ? '' : 'disabled'}>${t('maxBuy')}</button>
+      <button class="btn sm primary" id="tApply" style="margin-left:auto">${t('apply')}</button>
+    </div>
+  </div>`;
 }
 function maxAffordable(cv, g, cap) { let q = cap; while (q > 0 && sim.quote(cv.city, g, q).total > sim.S.akce) q = Math.floor(q * 0.9); while (q < cap && sim.quote(cv.city, g, q + 1).total <= sim.S.akce) q++; return Math.max(0, q); }
 function wireTrade(cv, g) {
@@ -3184,6 +3978,8 @@ function wireTrade(cv, g) {
   sl.onpointerdown = () => { sliderBusy = true; }; sl.onpointerup = sl.onchange = () => { sliderBusy = false; };
   $('tAllSell').onclick = () => { sl.value = sl.min; upd(); };
   $('tMaxBuy').onclick = () => { sl.value = maxAffordable(cv, g, +sl.max); upd(); };
+  const s5 = $('tSub5'); if (s5) s5.onclick = () => { sl.value = Math.max(+sl.min, +sl.value - 5); upd(); };
+  const a5 = $('tAdd5'); if (a5) a5.onclick = () => { sl.value = Math.min(+sl.max, +sl.value + 5); upd(); };
   ap.onclick = () => {
     const v = +sl.value;
     const r = v > 0 ? sim.buy(cv, g, v) : sim.sell(cv, g, -v);
@@ -3318,7 +4114,13 @@ function openPause() {
     <button class="btn" id="pRestart">${t('restart')}</button>
     <button class="btn" id="pSettings">${ICON.gear}${t('settings')}</button>
     <button class="btn" id="pLedger">${ICON.ledger}${t('ledger')}</button>
-    <button class="btn" id="pMenu">${t('mainMenu')}</button></div>`);
+    <button class="btn" id="pMenu">${t('mainMenu')}</button></div>
+    <div class="pause-keys">
+      <div class="key-row"><kbd>WASD / Oklar</kbd> <span>${t('keyPan')}</span></div>
+      <div class="key-row"><kbd>+ - / Tekerlek</kbd> <span>${t('keyZoom')}</span></div>
+      <div class="key-row"><kbd>C</kbd> <span>${t('keyCaravan')}</span></div>
+      <div class="key-row"><kbd>1 2 3</kbd> <span>${t('keySpeed')}</span></div>
+    </div>`);
   m.querySelector('#pResume').onclick = () => closeModal();
   m.querySelector('#pRestart').onclick = () => { closeModal(); store.del(SAVEKEY); newGame(); };
   m.querySelector('#pSettings').onclick = () => showSettings(openPause);
@@ -3400,7 +4202,7 @@ function showEnd(result) {
   const title = result === 'won' ? t('won') : result === 'bankrupt' ? t('bankrupt') : t('timeout');
   const text = result === 'won' ? t('wonText', { day: sc.day }) : result === 'bankrupt' ? t('bankruptText') : t('timeoutText');
   const stars = result === 'won' ? `<div class="stars">${[0, 1, 2].map((i) => (i < sc.stars ? ICON.star : ICON.starOff)).join('')}</div>` : '';
-  const m = modal(`<h2>${title}</h2>${stars}<p style="text-align:center;color:var(--ink-dim)">${text}</p>
+  const m = modal(`<h2>${title}</h2>${stars}<p style="text-align:center;color:var(--ink-dim);font-size:15.5px;line-height:1.5">${text}</p>
     ${rec && result !== 'bankrupt' ? `<div class="record">${t('newRecord')}</div>` : ''}
     <div class="bigstat"><div><b>${fmt(sc.score)}</b><span>${t('score')}</span></div><div><b>${fmt(sim.S.akce)}</b><span>${t('akce')}</span></div><div><b>${sc.day}</b><span>${t('dayN')}</span></div><div><b>${sim.S.stats.trips}</b><span>${t('trips')}</span></div></div>
     <div class="menu">${result !== 'bankrupt' ? `<button class="btn primary" id="eEndless">${t('endless')}</button>` : ''}
@@ -3418,11 +4220,12 @@ function renderTitle() {
   $('tHow').innerHTML = ['how1', 'how2', 'how3', 'how4'].map((k) => `<li>${t(k)}</li>`).join('');
   const sv = store.get(SAVEKEY);
   const canCont = sv && sv.S && (sv.S.status === 'playing' || sv.S.status === 'endless' || sv.S.status === 'won');
+  const contDetails = canCont ? ` <span class="cont-sub">(${t('saveSummary', { d: sv.S.day, a: fmt(sv.S.akce) })})</span>` : '';
   $('tMenu').innerHTML = `<button class="btn primary" id="tPlay" ${worldReady ? '' : 'disabled'}>${ICON.play}${t('play')}</button>
-    ${canCont ? `<button class="btn" id="tCont" ${worldReady ? '' : 'disabled'}>${t('cont')}</button>` : ''}
+    ${canCont ? `<button class="btn" id="tCont" ${worldReady ? '' : 'disabled'}>${t('cont')}${contDetails}</button>` : ''}
     <div class="row" style="gap:8px"><button class="btn" id="tSet" style="flex:1">${ICON.gear}${t('settings')}</button><button class="btn" id="tLang" style="flex:1">${ICON.lang}${t('langName')}</button></div>`;
   const best = store.get(BESTKEY);
-  $('tBest').textContent = best ? t('best', { score: fmt(best.score), stars: best.stars, day: best.day }) : t('noBest');
+  $('tBest').innerHTML = best ? `${ICON.star} <span>${t('best', { score: fmt(best.score), stars: best.stars, day: best.day })}</span>` : t('noBest');
   $('footer').textContent = t('footer', { model: MODEL });
   $('tLoad').classList.toggle('hidden', worldReady);
   const pl = $('tPlay'); if (pl) pl.onclick = () => { Sound.init(); store.del(SAVEKEY); newGame(); };
