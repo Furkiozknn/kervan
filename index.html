@@ -4425,6 +4425,7 @@ function rumorBox(id, cv) {
 }
 function tradeBox(cv, g) {
   const id = cv.city, have = cv.cargo[g] || 0, maxB = Math.min(sim.freeSpace(cv), sim.maxBuyable(id, g));
+  const maxAff = maxAffordable(cv, g, maxB);
   return `<div class="trade" id="tradeBox">
     <div class="row sp" style="margin-bottom:6px">
       <span class="muted" style="font-size:12.5px">${t('cargo')}: <b>${have}</b></span>
@@ -4434,10 +4435,9 @@ function tradeBox(cv, g) {
     <div class="row sp muted" style="font-size:12px"><span>${have ? t('sellN', { n: have }) : ''}</span><span>${t('buyN', { n: maxB })}</span></div>
     <div class="preview" id="tPrev"></div>
     <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">
-      <button class="btn sm" id="tAllSell" ${have ? '' : 'disabled'}>${t('sellAll')}</button>
-      <button class="btn sm" id="tSub5" ${have >= 5 ? '' : 'disabled'}>-5</button>
-      <button class="btn sm" id="tAdd5" ${maxB >= 5 ? '' : 'disabled'}>+5</button>
-      <button class="btn sm" id="tMaxBuy" ${maxB ? '' : 'disabled'}>${t('maxBuy')}</button>
+      <button class="btn sm" id="tBtn14" ${maxB ? '' : 'disabled'}>1/4</button>
+      <button class="btn sm" id="tBtn12" ${maxB ? '' : 'disabled'}>1/2</button>
+      <button class="btn sm" id="tBtnMax" ${maxB ? '' : 'disabled'}>${settings.lang === 'tr' ? 'Maks' : 'Max'}</button>
       <button class="btn sm primary" id="tApply" style="margin-left:auto">${t('apply')}</button>
     </div>
   </div>`;
@@ -4455,10 +4455,12 @@ function wireTrade(cv, g) {
   };
   sl.oninput = upd;
   sl.onpointerdown = () => { sliderBusy = true; }; sl.onpointerup = sl.onchange = () => { sliderBusy = false; };
-  $('tAllSell').onclick = () => { sl.value = sl.min; upd(); };
-  $('tMaxBuy').onclick = () => { sl.value = maxAffordable(cv, g, +sl.max); upd(); };
-  const s5 = $('tSub5'); if (s5) s5.onclick = () => { sl.value = Math.max(+sl.min, +sl.value - 5); upd(); };
-  const a5 = $('tAdd5'); if (a5) a5.onclick = () => { sl.value = Math.min(+sl.max, +sl.value + 5); upd(); };
+  const maxBVal = +sl.max;
+  const maxAffVal = maxAffordable(cv, g, maxBVal);
+  const setSliderVal = (v) => { sl.value = Math.max(+sl.min, Math.min(maxBVal, v)); upd(); };
+  const b14 = $('tBtn14'); if (b14) b14.onclick = () => { setSliderVal(Math.floor(maxAffVal * 0.25)); };
+  const b12 = $('tBtn12'); if (b12) b12.onclick = () => { setSliderVal(Math.floor(maxAffVal * 0.5)); };
+  const bMax = $('tBtnMax'); if (bMax) bMax.onclick = () => { setSliderVal(maxAffVal); };
   ap.onclick = () => {
     const v = +sl.value;
     const r = v > 0 ? sim.buy(cv, g, v) : sim.sell(cv, g, -v);
