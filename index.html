@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kervan</title>
+<meta name="arena-game" content="kervan">
 <meta name="description" content="A 3D Silk Road trade game across Anatolia: lead camel caravans between seven cities, buy low, sell high and build caravanserais before year five. Plays in the browser.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Kervan · Silk Road Caravan">
@@ -2417,6 +2418,8 @@ function sampleH(x, z) {
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowQ() ? 1 : 1.5));
+// arena-kit: dynamic pixel ratio on weak GPUs, never above the quality tier's own cap
+if (window.Arena) Arena.perf.attach(renderer, { max: Math.min(window.devicePixelRatio || 1, lowQ() ? 1 : 1.5) });
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = !lowQ();
 renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -3269,6 +3272,10 @@ Object.assign(STR.tr, {
   rumorWindow: '{a}.–{b}. gün', rumorPending: '{n}. güne kadar geçerli', rumorTrue: 'Doğru çıktı', rumorFalse: 'Boş çıktı',
   rumorPrice: 'fiyat {a} → {b}', rumorLog: 'Söylenti defteri', noRumors: 'Henüz söylenti almadın.', rumorFrom: '{city} hanından',
   t_rumor: 'Söylenti: {text}', t_rumorTrue: 'Söylenti doğru çıktı: {text}', t_rumorFalse: 'Söylenti boş çıktı: {text}', t_rumorCd: 'Bu handa yeni söylenti yok',
+  a11y: 'Erişilebilirlik', share: 'Paylaş', anotherGame: 'Başka oyun', daily: 'Günün Meydan Okuması',
+  dailySub: 'Herkese aynı pazarlar · seri {s} gün · en iyi {b}', dailyDone: 'bugün tamam', dailyTag: 'Günün Meydan Okuması · {d}',
+  dailyStreak: 'Seri: {s} gün · en iyi: {b}', shareScore: '{score} puan · {stars} yıldız · {day}. gün',
+  awWin: 'Kervan: ilk zafer', awStars: 'Kervan: üç yıldız',
 });
 Object.assign(STR.en, {
   rumors: 'Han rumours', rumorBuy: 'Buy a rumour ({c} akçe)', rumorWait: 'No fresh talk here, wait until day {n}',
@@ -3279,6 +3286,10 @@ Object.assign(STR.en, {
   rumorWindow: 'days {a}–{b}', rumorPending: 'valid until day {n}', rumorTrue: 'Came true', rumorFalse: 'Came to nothing',
   rumorPrice: 'price {a} → {b}', rumorLog: 'Rumour log', noRumors: 'No rumours bought yet.', rumorFrom: 'from the {city} han',
   t_rumor: 'Rumour: {text}', t_rumorTrue: 'Rumour came true: {text}', t_rumorFalse: 'Rumour came to nothing: {text}', t_rumorCd: 'No fresh rumours at this han',
+  a11y: 'Accessibility', share: 'Share', anotherGame: 'Another game', daily: 'Daily challenge',
+  dailySub: 'Same markets for everyone · streak {s} days · best {b}', dailyDone: 'done today', dailyTag: 'Daily challenge · {d}',
+  dailyStreak: 'Streak: {s} days · best: {b}', shareScore: '{score} points · {stars} stars · day {day}',
+  awWin: 'Kervan: first victory', awStars: 'Kervan: three stars',
 });
 function t(key, p) {
   const L = STR[settings.lang] || STR.tr;
@@ -4060,8 +4071,11 @@ function refreshSeason() {
   paintTerrain(s); paintRoads(s); tintTrees(s);
   R.snow.visible = s === 3;
 }
-function newGame() {
-  sim = new KervanSim(FLAGS.seed || (Date.now() % 1e9));
+function newGame(opts) {
+  // daily challenge: the arena-kit day seed builds the same markets for every player; the day travels in the save
+  const daily = opts && opts.daily;
+  sim = new KervanSim(daily ? daily.seed : (FLAGS.seed || (Date.now() % 1e9)));
+  if (daily) sim.S.daily = daily.day;
   bot = FLAGS.auto ? new KervanBot(sim, 'smart') : null;
   attachSim();
   game.selCv = null; game.wonShown = false;
@@ -4616,7 +4630,8 @@ function showSettings(back) {
     <div class="muted" id="qNote" style="display:none">${t('qualityNote')} <button class="btn sm" id="qReload">${t('reload')}</button></div>
     <div class="set"><span>${t('fullscreen')}</span><button class="btn sm" id="sFull">${ICON.full}${document.fullscreenElement ? t('on') : t('off')}</button><span></span></div>
     <div class="set"><span>${t('music')} (M) · ${t('effects')} (X)</span><div class="row" style="gap:6px"><button class="btn sm ${settings.musicOn ? 'primary' : ''}" id="sMus">${ICON.music}${settings.musicOn ? t('on') : t('off')}</button><button class="btn sm ${settings.sfxOn ? 'primary' : ''}" id="sSfx">${ICON.soundOn}${settings.sfxOn ? t('on') : t('off')}</button></div><span></span></div>
-    <div class="menu"><button class="btn primary" id="sBack">${t('back')}</button></div>`);
+    <div class="menu">${window.Arena ? `<button class="btn" id="sA11y">${t('a11y')}</button>` : ''}<button class="btn primary" id="sBack">${t('back')}</button></div>`);
+  const a11y = m.querySelector('#sA11y'); if (a11y) a11y.onclick = () => Arena.openSettings();
   m.querySelectorAll('input[data-k]').forEach((inp) => inp.oninput = () => { settings[inp.dataset.k] = +inp.value; m.querySelector(`[data-o="${inp.dataset.k}"]`).textContent = Math.round(inp.value * 100); saveSettings(); Sound.init(); Sound.apply(); });
   m.querySelectorAll('[data-lang]').forEach((b) => b.onclick = () => { setLang(b.dataset.lang); showSettings(back); });
   m.querySelectorAll('[data-q]').forEach((b) => b.onclick = () => { settings.quality = b.dataset.q; saveSettings(); m.querySelectorAll('[data-q]').forEach((x) => x.classList.toggle('on', x === b)); m.querySelector('#qNote').style.display = ''; });
@@ -4674,19 +4689,38 @@ function showYear(n, ys) {
   m.querySelector('#yOk').onclick = () => closeModal();
   if (FLAGS.auto) setTimeout(() => { if (game.modalKind === 'year') closeModal(); }, 1800);
 }
+// arena-kit at the end of a run: passport badges, the daily streak (only for the day the run was seeded with)
+// and a pick for the "another game" link. The ?auto bot never writes to the player's passport.
+function arenaEnd(result, sc) {
+  const out = { streak: '', other: 'kirkpinar' };
+  if (!window.Arena) return out;
+  const others = Arena.games.filter((g) => g !== 'kervan');
+  out.other = others[(Date.now() / 60000 | 0) % others.length];
+  if (FLAGS.auto) return out;
+  if (result === 'won') { Arena.award('kervan-win', t('awWin')); if (sc.stars >= 3) Arena.award('kervan-3stars', t('awStars')); }
+  if (sim.S.daily) {
+    const d = Arena.daily();
+    if (d.day === sim.S.daily) { const r = d.complete(sc.score); out.streak = t('dailyStreak', { s: r.streak, b: r.best }); }
+  }
+  return out;
+}
 function showEnd(result) {
   if (result === 'won' && game.wonShown) return;
   if (result === 'won') game.wonShown = true;
   game.modalKind = 'end';
-  const sc = sim.score(), rec = recordBest();
+  const sc = sim.score(), rec = recordBest(), ar = arenaEnd(result, sc);
   const title = result === 'won' ? t('won') : result === 'bankrupt' ? t('bankrupt') : t('timeout');
   const text = result === 'won' ? t('wonText', { day: sc.day }) : result === 'bankrupt' ? t('bankruptText') : t('timeoutText');
   const stars = result === 'won' ? `<div class="stars">${[0, 1, 2].map((i) => (i < sc.stars ? ICON.star : ICON.starOff)).join('')}</div>` : '';
   const m = modal(`<h2>${title}</h2>${stars}<p style="text-align:center;color:var(--ink-dim);font-size:15.5px;line-height:1.5">${text}</p>
     ${rec && result !== 'bankrupt' ? `<div class="record">${t('newRecord')}</div>` : ''}
     <div class="bigstat"><div><b>${fmt(sc.score)}</b><span>${t('score')}</span></div><div><b>${fmt(sim.S.akce)}</b><span>${t('akce')}</span></div><div><b>${sc.day}</b><span>${t('dayN')}</span></div><div><b>${sim.S.stats.trips}</b><span>${t('trips')}</span></div></div>
+    ${ar.streak ? `<p class="muted" style="text-align:center;margin:8px 0 0">${esc(ar.streak)}</p>` : ''}
     <div class="menu">${result !== 'bankrupt' ? `<button class="btn primary" id="eEndless">${t('endless')}</button>` : ''}
-    <button class="btn ${result === 'bankrupt' ? 'primary' : ''}" id="eAgain">${t('playAgain')}</button><button class="btn" id="eMenu">${t('mainMenu')}</button></div>`);
+    <button class="btn ${result === 'bankrupt' ? 'primary' : ''}" id="eAgain">${t('playAgain')}</button><button class="btn" id="eMenu">${t('mainMenu')}</button>
+    ${window.Arena ? `<div class="row" style="gap:8px"><button class="btn" id="eShare" style="flex:1">${t('share')}</button><a class="btn" id="eOther" style="flex:1;text-decoration:none" href="https://furkiozknn.github.io/${ar.other}/" target="_blank" rel="noopener">${t('anotherGame')}</a></div>` : ''}</div>`);
+  const sh = m.querySelector('#eShare');
+  if (sh) sh.onclick = () => Arena.share({ title: 'Kervan · ' + title, lines: [t('shareScore', { score: fmt(sc.score), stars: sc.stars, day: sc.day })].concat(sim.S.daily ? [t('dailyTag', { d: String(sim.S.daily).replace(/(\d{4})(\d\d)(\d\d)/, '$1-$2-$3') })] : [], ar.streak ? [ar.streak] : []), url: 'https://furkiozknn.github.io/kervan/' });
   const en = m.querySelector('#eEndless'); if (en) en.onclick = () => { sim.continueEndless(); closeModal(); save(); };
   m.querySelector('#eAgain').onclick = () => { closeModal(); store.del(SAVEKEY); newGame(); };
   m.querySelector('#eMenu').onclick = () => { closeModal(); if (sim.S.status === 'bankrupt') store.del(SAVEKEY); else save(); toTitle(); };
@@ -4701,8 +4735,10 @@ function renderTitle() {
   const sv = store.get(SAVEKEY);
   const canCont = sv && sv.S && (sv.S.status === 'playing' || sv.S.status === 'endless' || sv.S.status === 'won');
   const contDetails = canCont ? ` <span class="cont-sub">(${t('saveSummary', { d: sv.S.day, a: fmt(sv.S.akce) })})</span>` : '';
+  const dly = window.Arena ? Arena.daily() : null;
   $('tMenu').innerHTML = `<button class="btn primary" id="tPlay" ${worldReady ? '' : 'disabled'}>${ICON.play}${t('play')}</button>
     ${canCont ? `<button class="btn" id="tCont" ${worldReady ? '' : 'disabled'}>${t('cont')}${contDetails}</button>` : ''}
+    ${dly ? `<button class="btn" id="tDaily" ${worldReady ? '' : 'disabled'}>${t('daily')} <span class="cont-sub">(${dly.done ? t('dailyDone') + ' · ' : ''}${t('dailySub', { s: dly.streak, b: dly.best })})</span></button>` : ''}
     <div class="row" style="gap:8px"><button class="btn" id="tSet" style="flex:1">${ICON.gear}${t('settings')}</button><button class="btn" id="tLang" style="flex:1">${ICON.lang}${t('langName')}</button></div>`;
   const best = store.get(BESTKEY);
   $('tBest').innerHTML = best ? `${ICON.star} <span>${t('best', { score: fmt(best.score), stars: best.stars, day: best.day })}</span>` : t('noBest');
@@ -4710,6 +4746,7 @@ function renderTitle() {
   $('tLoad').classList.toggle('hidden', worldReady);
   const pl = $('tPlay'); if (pl) pl.onclick = () => { Sound.init(); store.del(SAVEKEY); newGame(); };
   const co = $('tCont'); if (co) co.onclick = () => { Sound.init(); loadGame(); };
+  const dl = $('tDaily'); if (dl) dl.onclick = () => { Sound.init(); store.del(SAVEKEY); newGame({ daily: Arena.daily() }); };
   $('tSet').onclick = () => { Sound.init(); showSettings(); };
   $('tLang').onclick = () => toggleLang();
   document.documentElement.lang = settings.lang;
@@ -4724,6 +4761,7 @@ function toTitle() {
 function setLang(l) {
   settings.lang = l; saveSettings();
   document.documentElement.lang = l;
+  if (window.Arena) Arena.lang(l);
   renderTitle();
   if (game.started) { buildHud(); updateHud(); renderCvBar(); refreshPanels(); }
   labelCache = {};
@@ -4761,6 +4799,15 @@ addEventListener('keydown', (e) => {
   if (k === '-') { cam.tdist /= 0.85; clampCam(); }
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+// arena-kit: the frame loop already stops the simulation while the tab is hidden; here the audio follows the
+// player's "pause when the tab is hidden" setting. Only an AudioContext we suspended ourselves is resumed.
+// The accessibility panel opens from Settings (a corner button would sit on the phone's bottom-sheet market).
+if (window.Arena) {
+  Arena.lang(settings.lang);
+  let arenaSuspended = false;
+  Arena.on('pause', () => { if (Sound.ctx && Sound.ctx.state === 'running') { Sound.ctx.suspend(); arenaSuspended = true; } });
+  Arena.on('resume', () => { if (arenaSuspended && Sound.ctx) Sound.ctx.resume(); arenaSuspended = false; });
+}
 addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
