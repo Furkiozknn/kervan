@@ -56,6 +56,7 @@
 - **Caravanserais:** Caravanserais (one on every long road) can be restored and upgraded: they keep bandits away, cut camel upkeep on all your caravans, earn a little every day and charge rival caravans for the night.
 - **Reputation & contracts:** Reputation with each city grows with trade and contracts and narrows the buy/sell spread. Cities offer contracts such as "deliver 20 carpets to Izmir before the first snow".
 - **Seasons & events:** Seasons matter: snow closes the mountain pass between Kayseri and Urfa in winter, spring floods slow river crossings. Plague and festivals change a city's demand for a while.
+- **Rumour trading:** In a city where you have a caravan, buy a rumour from the han for 25 akçe (one per city every 4 days), e.g. "silk prices in Bursa will rise 40% within 5 days". About 70% come true: the price shock is really scheduled into that market. The rest bring nothing or the opposite move. Cities on a road with your own caravanserai give better tips (~88%). The rumour log (city panel and Ledger) shows each rumour's window and, once it expires, whether it came true and how the price moved.
 - **Bankruptcy:** If your cash stays below zero and nothing is left to sell, you go bankrupt.
 
 </details>
