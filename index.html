@@ -1047,6 +1047,9 @@ const ECONOMY = {
     plague:   { chance: 0.004, days: 16, mult: { all: 0.72, spices: 1.6 } },
     festival: { chance: 0.008, days: 10, mult: { carpets: 1.35, figs: 1.4, silk: 1.3, ceramics: 1.3, spices: 1.15 } },
   },
+  // rumours sold in a city's han: ~70 % come true (the shock is scheduled into the prices below),
+  // the rest bring nothing or the opposite. Cities on a road with your own han hear better rumours.
+  rumors: { fee: 25, cooldown: 4, accuracy: 0.70, trusted: 0.88, pct: [0.25, 0.45], lead: [2, 7], days: [6, 10], upShare: 0.6, opposite: 0.5 },
   rep: { start: 10, startHome: 20, sellGain: 1 / 45, buyGain: 1 / 120, decay: 0.04 },
   start: { akce: 200, camels: 3, city: 'konya' },
   goal: { akce: 10000, hans: 3, years: 5 },
@@ -1225,10 +1228,80 @@ class KervanSim {
   // ----- markets -----
   spread(city) { return E.spread.base - (E.spread.base - E.spread.best) * clamp(this.S.rep[city], 0, 100) / 100; }
   eventMult(city, g) {
+    const k = this.shockMult(city, g);
     const ev = this.S.cityEvents[city];
-    if (!ev) return 1;
+    if (!ev) return k;
     const m = E.events[ev.type].mult;
-    return m[g] != null ? m[g] : (m.all != null ? m.all : 1);
+    return k * (m[g] != null ? m[g] : (m.all != null ? m.all : 1));
+  }
+
+  // ----- rumours (Söylenti ticareti) -----
+  // Scheduled price shocks live in S.shocks and use their own random stream (S.rrng), so a game
+  // without rumours plays exactly as before and a seed always gives the same rumours.
+  rumorState() {
+    const S = this.S;
+    if (!S.rumors) { S.rumors = []; S.shocks = []; S.rumorCd = {}; S.rrng = ((S.seed ^ 0x5BD1E995) >>> 0) || 7; }
+    return S;
+  }
+  shockMult(city, g) {
+    const sh = this.S.shocks;
+    if (!sh || !sh.length) return 1;
+    let k = 1;
+    for (const x of sh) if (x.city === city && x.g === g && this.S.day >= x.from && this.S.day < x.to) k *= x.mult;
+    return k;
+  }
+  trustedCity(city) { return ROADS.some((r) => r.han && (r.a === city || r.b === city) && this.S.hans[r.han].level > 0); }
+  rumorAccuracy(city) { return this.trustedCity(city) ? E.rumors.trusted : E.rumors.accuracy; }
+  rumorReady(city) { const S = this.rumorState(); return S.rumorCd[city] == null || S.day >= S.rumorCd[city]; }
+  // makeRumor is the pure generator (also used by the tests); buyRumor is the player action.
+  makeRumor(source) {
+    const S = this.rumorState(), R = E.rumors;
+    const rr = () => { const o = S.rng; S.rng = S.rrng; const v = rngNext(S); S.rrng = S.rng; S.rng = o; return v; };
+    const busy = (c, g, a, b) => S.shocks.some((x) => x.city === c && x.g === g && x.from < b && a < x.to);
+    let city, g, from, to;
+    for (let i = 0; i < 12; i++) {
+      city = CITY_IDS[Math.floor(rr() * CITY_IDS.length)]; g = GOODS[Math.floor(rr() * GOODS.length)];
+      from = S.day + R.lead[0] + Math.floor(rr() * (R.lead[1] - R.lead[0] + 1));
+      to = from + R.days[0] + Math.floor(rr() * (R.days[1] - R.days[0] + 1));
+      if (!busy(city, g, S.day, to)) break;
+    }
+    const dir = rr() < R.upShare ? 1 : -1;
+    const pct = Math.round((R.pct[0] + rr() * (R.pct[1] - R.pct[0])) * 20) / 20;
+    const acc = this.rumorAccuracy(source), real = rr() < acc;
+    const id = S.nextId++;
+    let shock = null;
+    if (real) shock = { id, city, g, mult: 1 + dir * pct, from, to };
+    else if (rr() < R.opposite) shock = { id, city, g, mult: 1 - dir * pct * 0.6, from, to };
+    if (shock) S.shocks.push(shock);
+    const r = { id, source, city, g, dir, pct, day: S.day, from, until: to, trusted: acc > R.accuracy, real, p0: this.mid(city, g), peak: null, done: false, came: null };
+    S.rumors.push(r);
+    return r;
+  }
+  buyRumor(cv) {
+    if (!this.canTrade(cv)) return { ok: false, reason: 'notInCity' };
+    if (!this.rumorReady(cv.city)) return { ok: false, reason: 'cooldown' };
+    if (!this.pay(E.rumors.fee)) return { ok: false, reason: 'noMoney' };
+    const S = this.S;
+    S.rumorCd[cv.city] = S.day + E.rumors.cooldown;
+    const r = this.makeRumor(cv.city);
+    this.emit({ type: 'rumor', r });
+    return { ok: true, r };
+  }
+  rumorDay() { // daily: track the rumoured price, settle expired rumours, drop old shocks
+    const S = this.S;
+    if (!S.rumors || !S.rumors.length) return;
+    for (const r of S.rumors) {
+      if (r.done) continue;
+      if (S.day >= r.from && S.day < r.until) { const p = this.mid(r.city, r.g); r.peak = r.peak == null ? p : r.dir > 0 ? Math.max(r.peak, p) : Math.min(r.peak, p); }
+      if (S.day >= r.until) {
+        // true when a shock in the rumoured direction really moved this price during the window
+        r.came = S.shocks.some((x) => x.city === r.city && x.g === r.g && x.from < r.until && r.from < x.to && (x.mult - 1) * r.dir > 0);
+        r.done = true;
+        this.emit({ type: 'rumorDone', r });
+      }
+    }
+    S.shocks = S.shocks.filter((x) => x.to > S.day || S.rumors.some((r) => !r.done && r.city === x.city && r.g === x.g));
+    if (S.rumors.length > 40) S.rumors.splice(0, S.rumors.length - 40);
   }
   priceAtStock(city, g, stock) {
     const role = E.roles[roleOf(city, g)];
@@ -1644,6 +1717,7 @@ class KervanSim {
       this.emit({ type: 'contractFailed', c });
     }
     for (const c of CITY_IDS) if (!S.offers.some((o) => o.city === c) && rngNext(S) < 0.08) this.makeOffer(c);
+    this.rumorDay();
     // seasons & years
     if (season !== prevSeason) this.emit({ type: 'season', season });
     if (S.day % DAYS_PER_YEAR === 0) {
@@ -2833,6 +2907,24 @@ const STR = {
 Object.assign(STR.tr, {
   fleet: 'Kervan Filosu', chronicle: 'Tarih & Mevsim', saveSummary: 'Kayıt: {d}. gün · {a} akçe',
   keyPan: 'Haritayı kaydır', keyZoom: 'Yakınlaş / Uzaklaş', keyCaravan: 'Kervan seç', keySpeed: 'Oyun hızı', controlsHelp: 'Klavye Kısayolları',
+  rumors: 'Han söylentileri', rumorBuy: 'Söylenti satın al ({c} akçe)', rumorWait: 'Handa yeni söz yok, {n}. günü bekle',
+  rumorInfo: 'Hancı kulağına bir fiyat haberi fısıldar. Bazıları boş çıkar ya da tersi olur.',
+  rumorSrc: 'Kaynak: çarşı dedikodusu · doğruluk ~%{p}', rumorSrcTrusted: 'Kaynak: senin hanının adamları · doğruluk ~%{p}',
+  rumorNeedCv: 'Söylenti almak için burada bir kervanın olmalı.',
+  rumorText: '{city} pazarında {good} fiyatı {n} gün içinde %{p} {dir}', rumorUp: 'artacak', rumorDown: 'düşecek',
+  rumorWindow: '{a}.–{b}. gün', rumorPending: '{n}. güne kadar geçerli', rumorTrue: 'Doğru çıktı', rumorFalse: 'Boş çıktı',
+  rumorPrice: 'fiyat {a} → {b}', rumorLog: 'Söylenti defteri', noRumors: 'Henüz söylenti almadın.', rumorFrom: '{city} hanından',
+  t_rumor: 'Söylenti: {text}', t_rumorTrue: 'Söylenti doğru çıktı: {text}', t_rumorFalse: 'Söylenti boş çıktı: {text}', t_rumorCd: 'Bu handa yeni söylenti yok',
+});
+Object.assign(STR.en, {
+  rumors: 'Han rumours', rumorBuy: 'Buy a rumour ({c} akçe)', rumorWait: 'No fresh talk here, wait until day {n}',
+  rumorInfo: 'The innkeeper whispers a price tip. Some come to nothing, some turn out the other way.',
+  rumorSrc: 'Source: bazaar gossip · ~{p}% accurate', rumorSrcTrusted: 'Source: your own han\'s people · ~{p}% accurate',
+  rumorNeedCv: 'You need a caravan here to buy rumours.',
+  rumorText: '{good} prices in {city} will {dir} {p}% within {n} days', rumorUp: 'rise', rumorDown: 'fall',
+  rumorWindow: 'days {a}–{b}', rumorPending: 'valid until day {n}', rumorTrue: 'Came true', rumorFalse: 'Came to nothing',
+  rumorPrice: 'price {a} → {b}', rumorLog: 'Rumour log', noRumors: 'No rumours bought yet.', rumorFrom: 'from the {city} han',
+  t_rumor: 'Rumour: {text}', t_rumorTrue: 'Rumour came true: {text}', t_rumorFalse: 'Rumour came to nothing: {text}', t_rumorCd: 'No fresh rumours at this han',
 });
 function t(key, p) {
   const L = STR[settings.lang] || STR.tr;
@@ -3682,6 +3774,8 @@ function onSimEvent(e) {
     case 'debt': toast(t('t_debt'), 'bad', 6000); Sound.bad(); break;
     case 'newCaravan': toast(t('t_newCaravan', { city: cityName(e.city) }), 'good'); Sound.good(); renderCvBar(); break;
     case 'han': buildHan(e.han, e.level); toast(t('t_han', { han: HAN_NAMES[e.han], n: e.level }), 'good'); Sound.good(); refreshPanels(); break;
+    case 'rumor': toast(t('t_rumor', { text: rumorText(e.r) }), 'info', 6000); Sound.click(); break;
+    case 'rumorDone': toast(t(e.r.came ? 't_rumorTrue' : 't_rumorFalse', { text: rumorText(e.r) }), e.r.came ? 'good' : 'info', 5000); refreshPanels(); break;
     case 'camel': Sound.bell(0.6, 0.9); Sound.sample('leather_1', 0.5, 0.8, 0.1); break;
     case 'yearEnd': if (sim.S.status === 'playing' || sim.S.status === 'endless') showYear(e.year, e.stats); break;
     case 'end': showEnd(e.result); break;
@@ -3724,6 +3818,21 @@ function toast(msg, kind = 'info', ms = 4500) {
 }
 const repLevel = (r) => Math.min(3, Math.floor(r / 25));
 const repColor = (r) => ['#9C8B74', '#C9A24A', '#2F8F6B', '#2F6FA0'][repLevel(r)];
+function rumorText(r) {
+  const g = goodName(r.g);
+  return t('rumorText', { city: cityName(r.city), good: settings.lang === 'tr' ? g.toLocaleLowerCase('tr-TR') : g, n: Math.max(1, r.from - r.day), p: Math.round(r.pct * 100), dir: t(r.dir > 0 ? 'rumorUp' : 'rumorDown') });
+}
+function rumorCards(limit) {
+  const list = (sim.S.rumors || []).slice().reverse().slice(0, limit);
+  if (!list.length) return `<div class="muted">${t('noRumors')}</div>`;
+  return list.map((r) => {
+    const status = !r.done ? `<span class="muted">${t('rumorPending', { n: r.until })}</span>`
+      : `<b class="${r.came ? 'up' : 'dn'}">${t(r.came ? 'rumorTrue' : 'rumorFalse')}</b>`;
+    const price = r.done && r.peak != null ? ` · <span class="muted">${t('rumorPrice', { a: fmt1(r.p0), b: fmt1(r.peak) })}</span>` : '';
+    return `<div class="card rumor" data-rumor="${r.id}"><div class="t">${ICON.contract}${esc(rumorText(r))}</div>
+      <div class="row sp" style="margin-top:4px;flex-wrap:wrap;gap:4px"><span class="muted">${t('rumorWindow', { a: r.from, b: r.until })} · ${t('rumorFrom', { city: cityName(r.source) })}${r.trusted ? ' ★' : ''}</span><span>${status}${price}</span></div></div>`;
+  }).join('');
+}
 function contractLine(c) { return t('contractLine', { qty: c.qty, good: goodName(c.good), city: cityName(c.city) }) + ' · ' + (c.label === 'snow' ? t('beforeSnow') : t('untilDay', { n: c.deadline })); }
 
 function buildHud() {
@@ -3931,7 +4040,13 @@ function renderCity() {
     <table class="goods"><thead><tr><th>${t('good')}</th><th>${t('buy')}</th><th>${t('sell')}</th><th>${t('stock')}</th><th>${t('youHave')}</th></tr></thead><tbody>${rows}</tbody></table>
     ${cv ? `<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn sm" id="cSellAll" ${Object.keys(cv.cargo).length ? '' : 'disabled'}>${t('sellAll')}</button>
       <button class="btn sm" id="cNewCv" ${sim.playerCaravans().length < ECONOMY.costs.maxCaravans && S.akce >= ECONOMY.costs.caravan ? '' : 'disabled'}>${ICON.camel}${t('newCaravan', { cost: ECONOMY.costs.caravan })}</button></div>` : ''}
-    <h3>${t('contracts')}</h3>${contractHtml}`;
+    <h3>${t('contracts')}</h3>${contractHtml}
+    <h3>${t('rumors')}</h3>${rumorBox(id, cv)}`;
+  const rb = $('cRumor'); if (rb) rb.onclick = () => {
+    const r = sim.buyRumor(cv);
+    if (!r.ok) toast(t(r.reason === 'noMoney' ? 't_noMoney' : 't_rumorCd'), 'bad');
+    updateHud(); renderCity();
+  };
   $('cClose').onclick = () => { game.openCity = null; p.classList.add('hidden'); if (game.selCv) renderCvPanel(); };
   p.querySelectorAll('tr[data-g]').forEach((tr) => {
     const go = () => { if (!cv) return; openTrade = openTrade && openTrade.g === tr.dataset.g ? null : { g: tr.dataset.g, v: 0 }; Sound.click(); renderCity(); };
@@ -3943,6 +4058,16 @@ function renderCity() {
   const sa = $('cSellAll'); if (sa) sa.onclick = () => { for (const g of Object.keys(cv.cargo)) sim.sell(cv, g, cv.cargo[g]); updateHud(); renderCvPanel(); };
   const nc = $('cNewCv'); if (nc) nc.onclick = () => { const r = sim.buyCaravan(id); if (r.ok) selectCaravan(r.cv.id); updateHud(); };
   if (cv && openTrade) wireTrade(cv, openTrade.g);
+}
+function rumorBox(id, cv) {
+  const R = ECONOMY.rumors, S = sim.S, trusted = sim.trustedCity(id), ready = sim.rumorReady(id);
+  const src = t(trusted ? 'rumorSrcTrusted' : 'rumorSrc', { p: Math.round(sim.rumorAccuracy(id) * 100) });
+  const btn = !cv ? `<div class="muted">${t('rumorNeedCv')}</div>`
+    : ready ? `<button class="btn sm primary" id="cRumor" ${S.akce >= R.fee ? '' : 'disabled'}>${t('rumorBuy', { c: R.fee })}</button>`
+    : `<button class="btn sm" disabled>${t('rumorWait', { n: S.rumorCd[id] })}</button>`;
+  return `<div class="muted" style="line-height:1.45">${t('rumorInfo')}</div>
+    <div class="row sp" style="margin:6px 0;gap:6px;flex-wrap:wrap"><span class="muted">${trusted ? '★ ' : ''}${src}</span>${btn}</div>
+    ${rumorCards(5)}`;
 }
 function tradeBox(cv, g) {
   const id = cv.city, have = cv.cargo[g] || 0, maxB = Math.min(sim.freeSpace(cv), sim.maxBuyable(id, g));
@@ -4177,6 +4302,7 @@ function showLedger(back) {
       <div><h3 class="muted" style="margin:0 0 6px">${t('goal')}</h3><div class="card">${S.status === 'endless' ? t('goalEndless') : t('goalLine', { a: fmt(S.akce), b: fmt(ECONOMY.goal.akce), h: sim.ownedHans(), hh: ECONOMY.goal.hans, d: left })}</div>
         <div class="bar" style="margin:6px 0 12px"><i style="width:${Math.max(0, Math.min(100, S.akce / ECONOMY.goal.akce * 100))}%"></i></div>
         <h3 class="muted" style="margin:0 0 6px">${t('contracts')}</h3>${S.contracts.map((c) => `<div class="card">${esc(contractLine(c))}<div class="muted">${t('progress', { a: c.delivered, b: c.qty })} · ${t('reward')}: ${fmt(c.reward)}</div></div>`).join('') || `<div class="muted">${t('none')}</div>`}
+        <h3 class="muted" style="margin:10px 0 6px">${t('rumorLog')}</h3>${rumorCards(8)}
         <h3 class="muted" style="margin:10px 0 6px">${t('caravans')}</h3>${sim.playerCaravans().map((c) => `<div class="muted">${t('caravan', { n: c.num })}: ${c.camels} ${t('camels').toLowerCase()}, ${c.guards} ${t('guards').toLowerCase()} · ${c.city ? cityName(c.city) : '→ ' + cityName(c.dest)}</div>`).join('')}
       </div></div>
     <div class="menu"><button class="btn primary" id="lBack">${back ? t('back') : t('close')}</button></div>`, true);
