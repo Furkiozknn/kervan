@@ -3977,11 +3977,11 @@ function toScreen(x, y, z) {
 }
 function pick(px, py) {
   // screen-space picking, generous for touch
-  const touch = lastPointerType === 'touch' ? 1.6 : 1;
+  const touch = lastPointerType === 'touch' ? 2.2 : 1;
   let best = null;
   const consider = (kind, id, x, y, z, r) => { const s = toScreen(x, y, z); if (!s.vis) return; const d = Math.hypot(s.x - px, s.y - py); if (d < r * touch && (!best || d / r < best.score)) best = { kind, id, score: d / r }; };
-  for (const cv of sim.playerCaravans()) if (cv._pos) consider('caravan', cv.id, cv._pos.x, (cv._y || 0) + 2.2, cv._pos.z, 30);
-  for (const id of CITY_IDS) consider('city', id, CITIES[id].x, CITIES[id].base + 2, CITIES[id].z, 44);
+  for (const cv of sim.playerCaravans()) if (cv._pos) consider('caravan', cv.id, cv._pos.x, (cv._y || 0) + 2.2, cv._pos.z, 48);
+  for (const id of CITY_IDS) consider('city', id, CITIES[id].x, CITIES[id].base + 2, CITIES[id].z, 68);
   for (const id in HANS) consider('han', id, HANS[id].x, sampleH(HANS[id].x, HANS[id].z) + 1.5, HANS[id].z, 24);
   return best;
 }
