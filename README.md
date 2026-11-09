@@ -26,9 +26,6 @@
 </p>
 
 <!-- gameplay gif -->
-<p align="center">
-  <sub>Watch the promo: <a href="https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-en.mp4">EN</a> &middot; <a href="https://github.com/Furkiozknn/social-videos/releases/download/promo-2026-10/2026-10-27-kervan-tr.mp4">TR</a></sub>
-</p>
 
 ## Features
 
