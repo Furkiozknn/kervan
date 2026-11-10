@@ -660,6 +660,67 @@ table.goods td.g { display: flex; align-items: center; gap: 7px; font-weight: 70
   .trade input[type=range] { height: 44px; }
 }
 
+/* Floating profit / loss trade feedback */
+#floatLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 35;
+  overflow: hidden;
+}
+.trade-float {
+  position: absolute;
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--display);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: .025em;
+  padding: 5px 12px 4px;
+  border-radius: 6px;
+  line-height: 1.2;
+  box-shadow: 0 4px 14px rgba(22, 10, 4, 0.45);
+  animation: floatTradeText 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.trade-float.gain {
+  background: linear-gradient(180deg, #F8FCF6 0%, #E6F5EC 100%);
+  color: #0E5E38;
+  border: 1.5px solid #1F7A63;
+  box-shadow: 0 4px 14px rgba(18, 75, 61, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.trade-float.loss {
+  background: linear-gradient(180deg, #FFF8F6 0%, #FDECE9 100%);
+  color: #931F1D;
+  border: 1.5px solid #B4532A;
+  box-shadow: 0 4px 14px rgba(120, 47, 18, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+@keyframes floatTradeText {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.85);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -6px) scale(1.06);
+  }
+  24% {
+    transform: translate(-50%, -12px) scale(1);
+  }
+  70% {
+    opacity: 0.95;
+    transform: translate(-50%, -32px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50px) scale(0.94);
+  }
+}
+
 /* =================================================================================================
    TITLE SCREEN & MODALS: IMPERIAL SELÇUKLU PORTAL ARCHITECTURE
    ================================================================================================= */
@@ -966,6 +1027,7 @@ kbd {
 <body>
 <canvas id="c" tabindex="-1" aria-label="Kervan map"></canvas>
 <div id="labels"></div>
+<div id="floatLayer"></div>
 <header id="hud" class="glass hidden"></header>
 <div id="toasts" aria-live="polite"></div>
 <aside id="cvPanel" class="panel left glass hidden" aria-label="caravan"></aside>
@@ -1563,7 +1625,7 @@ class KervanSim {
     S.rep[cv.city] = clamp(S.rep[cv.city] + qt.total * E.rep.buyGain, 0, 100);
     S.stats.bought += q;
     this.yearStat('purchases', qt.total);
-    this.emit({ type: 'trade', cv: cv.id, g, q, total: qt.total });
+    this.emit({ type: 'trade', cv: cv.id, city: cv.city, g, q, total: qt.total });
     return { ok: true, q, total: qt.total };
   }
   sell(cv, g, q) {
@@ -1584,7 +1646,7 @@ class KervanSim {
     S.stats.sold += q;
     this.yearStat('sales', income);
     this.yearStat('profit', income - avg * q);
-    this.emit({ type: 'trade', cv: cv.id, g, q: -q, total: -income, profit: income - avg * q });
+    this.emit({ type: 'trade', cv: cv.id, city: cv.city, g, q: -q, total: -income, profit: income - avg * q });
     return { ok: true, q, total: income };
   }
   pay(v, cat) {
@@ -4090,6 +4152,7 @@ function newGame(opts) {
   attachSim();
   game.selCv = null; game.wonShown = false;
   closePanels();
+  clearFloatingTexts();
   startPlaying();
   const cv = sim.playerCaravans()[0];
   cam.tx = CITIES[cv.city].x + 10; cam.tz = CITIES[cv.city].z + 6; cam.tdist = 120;
@@ -4138,7 +4201,13 @@ function onSimEvent(e) {
   switch (e.type) {
     case 'depart': { $('hint').classList.add('hidden'); const c = sim.caravan(e.cv); const h = c && c.path ? sim.travelHoursToDays(c.path, c.path.d) : 0; if (!FLAGS.auto || e.cv === game.selCv) toast(t('t_depart', { cv: cvName(e.cv), city: cityName(e.to), eta: fmtEta(h) }), 'info'); Sound.bell(0.8); refreshRoute(); renderCvBar(); break; }
     case 'arrive': toast(t('t_arrive', { cv: cvName(e.cv), city: cityName(e.city) }), 'info', 3000); Sound.bell(1, 1.2); refreshRoute(); renderCvBar(); refreshPanels(); break;
-    case 'trade': if (e.q < 0) Sound.sell(); else Sound.buy(); refreshPanels(); break;
+    case 'trade': {
+      if (e.q < 0) Sound.sell(); else Sound.buy();
+      const cId = e.city || (sim.caravan(e.cv) && sim.caravan(e.cv).city);
+      if (cId) spawnTradeFloatingText(cId, -e.total);
+      refreshPanels();
+      break;
+    }
     case 'bandits': toast(t('t_bandits', { road: roadName(e.road) }), 'bad'); break;
     case 'banditRepelled': toast(t(e.lostGuard ? 't_banditWinGuard' : 't_banditWin', { cv: cvName(e.cv), road: roadName(e.road) }), 'good'); Sound.good(); break;
     case 'banditLoss': toast(e.lost ? t('t_banditLoss', { cv: cvName(e.cv), n: e.lost }) : t('t_banditCoins', { cv: cvName(e.cv), n: e.coins }), 'bad'); Sound.bad(); refreshPanels(); break;
@@ -4597,6 +4666,76 @@ function updateLabels() {
     const r = ROAD_BY_ID[b.road], p = pointAt(r.pts, r.cum, b.s);
     placeLabel(el, p.x - Math.sin(p.dir) * 4.2, sampleH(p.x, p.z) + 4.5, p.z + Math.cos(p.dir) * 4.2, `${ICON.bandit}${t('banditsHere')}`, show && cam.dist < 200);
   }
+  updateFloatingTexts();
+}
+
+// --- floating trade profit/loss text ---
+const activeFloatingTexts = [];
+function spawnTradeFloatingText(cityId, netAkce) {
+  const c = CITIES[cityId];
+  if (!c) return;
+  const container = $('floatLayer') || $('labels') || document.body;
+  const el = document.createElement('div');
+  const isGain = netAkce >= 0;
+  el.className = 'trade-float ' + (isGain ? 'gain' : 'loss');
+  el.setAttribute('data-city', cityId);
+  el.setAttribute('data-amount', String(Math.round(netAkce)));
+  const sign = isGain ? '+' : '-';
+  el.textContent = `${sign}${fmt(Math.abs(Math.round(netAkce)))} ${t('akce')}`;
+
+  // Stack offset if multiple trades occur in rapid succession at the same city
+  const cityActive = activeFloatingTexts.filter((t) => t.cityId === cityId);
+  const stackOffset = Math.min(cityActive.length * 22, 66);
+
+  // Keep active list bounded for performance
+  if (activeFloatingTexts.length > 24) {
+    const oldest = activeFloatingTexts.shift();
+    if (oldest && oldest.el.parentNode) oldest.el.parentNode.removeChild(oldest.el);
+  }
+
+  const entry = { el, cityId, stackOffset, spawnTime: performance.now() };
+  activeFloatingTexts.push(entry);
+
+  const s = toScreen(c.x, c.base + 10, c.z);
+  if (s.vis) {
+    el.style.left = s.x.toFixed(1) + 'px';
+    el.style.top = (s.y - 30 - stackOffset).toFixed(1) + 'px';
+  } else {
+    el.style.display = 'none';
+  }
+
+  container.appendChild(el);
+
+  const cleanup = () => {
+    if (el.parentNode) el.parentNode.removeChild(el);
+    const idx = activeFloatingTexts.indexOf(entry);
+    if (idx !== -1) activeFloatingTexts.splice(idx, 1);
+  };
+  setTimeout(cleanup, 1500);
+}
+
+function updateFloatingTexts() {
+  if (!activeFloatingTexts.length) return;
+  for (let i = activeFloatingTexts.length - 1; i >= 0; i--) {
+    const item = activeFloatingTexts[i];
+    const c = CITIES[item.cityId];
+    if (!c) continue;
+    const s = toScreen(c.x, c.base + 10, c.z);
+    if (!s.vis || s.x < -100 || s.x > innerWidth + 100 || s.y < -100 || s.y > innerHeight + 100) {
+      item.el.style.display = 'none';
+    } else {
+      item.el.style.display = '';
+      item.el.style.left = s.x.toFixed(1) + 'px';
+      item.el.style.top = (s.y - 30 - item.stackOffset).toFixed(1) + 'px';
+    }
+  }
+}
+
+function clearFloatingTexts() {
+  while (activeFloatingTexts.length) {
+    const item = activeFloatingTexts.pop();
+    if (item.el && item.el.parentNode) item.el.parentNode.removeChild(item.el);
+  }
 }
 
 // --- modals ---
@@ -4764,6 +4903,7 @@ function renderTitle() {
 function toTitle() {
   game.started = false;
   closePanels();
+  clearFloatingTexts();
   ['hud', 'cvBar', 'hint'].forEach((id) => $(id).classList.add('hidden'));
   $('title').classList.remove('hidden');
   renderTitle();
@@ -5059,6 +5199,7 @@ function updateDebug() {
 window.kervan = {
   get sim() { return sim; }, get state() { return sim.S; }, get game() { return game; }, get bot() { return bot; },
   renderer, scene, camera, cam, world, assets: ASSETS, newGame, loadGame, fastForward, select: selectCaravan, openCity, openHan, openPause, showSettings, showLedger, toTitle,
+  spawnTradeFloatingText,
   info: () => ({ perf: { ...perf }, fps, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, errors: window.__errors.slice() }),
 };
 if (FLAGS.debug) window.kervanSim = (seconds) => fastForward(seconds);
