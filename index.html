@@ -973,7 +973,7 @@ kbd {
   .chip { height: 36px; padding: 0 9px; font-size: 13.5px; }
   .chip .sub { display: none; }
   .chip.opt { display: none; }
-  #toasts { top: 120px; right: 8px; width: min(360px, calc(100% - 16px)); }
+  #toasts { top: 162px; right: 8px; width: min(360px, calc(100% - 16px)); }   /* below the two-row HUD (bottom edge 156 px at 360-412), it used to cover it */
   .panel, .panel.right {
     top: auto; bottom: 0; left: 0; right: 0;
     width: auto; max-height: 60%;
@@ -1029,7 +1029,7 @@ kbd {
 <div id="labels"></div>
 <div id="floatLayer"></div>
 <header id="hud" class="glass hidden"></header>
-<div id="toasts" aria-live="polite"></div>
+<div id="toasts" role="status" aria-live="polite"></div>
 <aside id="cvPanel" class="panel left glass hidden" aria-label="caravan"></aside>
 <aside id="cityPanel" class="panel right glass hidden" aria-label="city"></aside>
 <div id="cvBar" class="hidden"></div>
@@ -3965,7 +3965,7 @@ function updateParticles(dt, nf, time) {
   const L = R.lanterns.geometry.attributes;
   let n = 0;
   const put = (x, y, z, s, r, g, b, al) => { if (n >= R.lanterns.userData.n) return; L.position.setXYZ(n, x, y, z); L.psize.setX(n, s); L.pcolor.setXYZ(n, r, g, b); L.palpha.setX(n, al); n++; };
-  const flick = (k) => 0.85 + Math.sin(time * 9 + k * 3.7) * 0.08 + Math.sin(time * 23 + k) * 0.05;
+  const still = calm(), flick = (k) => still ? 0.85 : 0.85 + Math.sin(time * 9 + k * 3.7) * 0.08 + Math.sin(time * 23 + k) * 0.05;   // reduce motion: lanterns burn steady
   world.lanterns.forEach((p, k) => put(p[0], p[1], p[2], 3.4 * p[3], 1, 0.7, 0.28, nf * flick(k)));
   for (const id in world.hanLanterns) { const own = sim.S.hans[id].level > 0; for (const p of world.hanLanterns[id]) put(p[0], p[1], p[2], own ? 3.4 : 2.4, 1, 0.7, 0.32, nf * flick(n) * (own ? 1 : 0.7)); }
   for (const p of R.camp || []) put(p[0], p[1], p[2], 3.0, 1, 0.55, 0.2, Math.max(0.35, nf) * flick(n));
@@ -4028,8 +4028,9 @@ function updateParticles(dt, nf, time) {
 // camera + input
 // ------------------------------------------------------------------------------------------------
 const cam = { x: -10, z: 8, dist: 175, tx: -10, tz: 8, tdist: 175 };
+const calm = () => !!(window.Arena && Arena.settings && Arena.settings.reducedMotion);   // kit "reduce motion": read live, visuals only (the sim never sees it)
 function updateCamera(dt) {
-  const k = Math.min(1, dt * 8);
+  const k = calm() ? 1 : Math.min(1, dt * 8);   // reduce motion: the camera jumps to its target, no glide
   cam.x += (cam.tx - cam.x) * k; cam.z += (cam.tz - cam.z) * k; cam.dist += (cam.tdist - cam.dist) * k;
   const pitch = lerp(0.6, 1.0, sstep(40, 210, cam.dist));
   camera.position.set(cam.x, 2 + Math.sin(pitch) * cam.dist, cam.z + Math.cos(pitch) * cam.dist);
@@ -5019,7 +5020,7 @@ function frame(now) {
       while (botAcc >= 1 && running) { bot.tick(); sim.advance(1); botAcc -= 1; if (game.modal) break; }
     } else sim.advance(hours);
   }
-  if (!game.started) { cam.tx = Math.sin(now * 0.00005) * 40; cam.tz = 6 + Math.cos(now * 0.00004) * 14; cam.tdist = 185; }
+  if (!game.started && !calm()) { cam.tx = Math.sin(now * 0.00005) * 40; cam.tz = 6 + Math.cos(now * 0.00004) * 14; cam.tdist = 185; }
   updateCamera(dt);
   const time = now / 1000;
   const nf = updateLight();
