@@ -1,0 +1,16 @@
+{
+  "game": "kervan",
+  "recorded": "2026-11-10T00:55:12.104Z",
+  "commit": "d9d7951",
+  "entrySha": "a0c2820322f1",
+  "run": "() => {\n      const K = window.KervanCore, out = [];\n      for (let seed = 1; seed <= 12; seed++) {\n        const sim = new K.KervanSim(seed), bot = new K.KervanBot(sim, 'smart');\n        for (let h = 0; h < K.END_DAY * 24 + 48 && sim.S.status === 'playing'; h++) { bot.tick(); sim.advance(1); }\n        const sc = sim.score();\n        out.push({ status: sim.S.status, day: sc.day, stars: sc.stars, score: sc.score, hans: sim.ownedHans() });\n      }\n      window.__gateOut = out;\n    }",
+  "metrics": {
+    "wins": 11,
+    "stars": 26,
+    "score": 45613,
+    "winDays": 2031,
+    "bankrupt": 1,
+    "perSeed": "22223b223332",
+    "gameErrors": 0
+  }
+}
