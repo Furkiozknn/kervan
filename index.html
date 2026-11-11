@@ -455,6 +455,31 @@ table.goods td.g { display: flex; align-items: center; gap: 7px; font-weight: 70
   border: 1px solid rgba(78, 53, 36, 0.35);
   box-shadow: inset 0 1px 4px rgba(78, 53, 36, 0.08);
 }
+.trade-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.trade-slider-wrap input[type=range] {
+  flex: 1 1 120px;
+  width: 100%;
+  accent-color: var(--terra);
+  height: 36px;
+  cursor: pointer;
+}
+.quick-trade-group {
+  display: inline-flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.quick-btn {
+  min-height: 34px;
+  min-width: 36px;
+  padding: 0 9px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+}
 .trade input[type=range] {
   width: 100%;
   accent-color: var(--terra);
@@ -657,7 +682,8 @@ table.goods td.g { display: flex; align-items: center; gap: 7px; font-weight: 70
   .lbl { min-height: 44px; padding: 8px 14px; }
   .lbl.han { min-height: 44px; padding: 8px 14px; }
   table.goods td { padding: 12px 6px; }
-  .trade input[type=range] { height: 44px; }
+  .trade input[type=range], .trade-slider-wrap input[type=range] { height: 44px; }
+  .quick-btn { min-height: 42px; min-width: 42px; padding: 0 8px; }
 }
 
 /* Floating profit / loss trade feedback */
@@ -1376,6 +1402,16 @@ class KervanSim {
   buyPrice(city, g) { return this.mid(city, g) * (1 + this.spread(city)); }
   sellPrice(city, g) { return this.mid(city, g) * (1 - this.spread(city)); }
   maxBuyable(city, g) { const m = this.S.markets[city]; return Math.max(0, Math.floor(m.stock[g] - m.eq[g] * 0.12)); }
+  maxAffordable(cv, g, cap) {
+    if (!cv || !cv.city || !g) return 0;
+    if (cap == null) cap = Math.min(this.freeSpace(cv), this.maxBuyable(cv.city, g));
+    cap = Math.max(0, Math.floor(+cap || 0));
+    if (cap <= 0) return 0;
+    let q = cap;
+    while (q > 0 && this.quote(cv.city, g, q).total > this.S.akce) q = Math.floor(q * 0.9);
+    while (q < cap && this.quote(cv.city, g, q + 1).total <= this.S.akce) q++;
+    return Math.max(0, q);
+  }
   quote(city, g, q) { // q > 0 buy, q < 0 sell; returns total akce (positive = cost) and price after
     const m = this.S.markets[city], sp = this.spread(city);
     let total = 0, stock = m.stock[g];
@@ -3334,6 +3370,7 @@ const STR = {
     tradeWith: 'İşlem yapan', noCaravanHere: 'Burada kervanın yok. Alım satım için bir kervan gönder.', sendHere: 'Seçili kervanı gönder ({eta})', sendHereRoad: 'Seçili kervanı buraya yönlendir',
     buyN: '{n} al', sellN: '{n} sat', costPrev: '{n} birim · toplam <b>{total}</b> akçe (ort. {avg}) · fiyat {p0} → {p1}', notEnough: 'Yeterli akçe yok',
     sellAll: 'Hepsini sat', maxBuy: 'En çok', apply: 'Uygula', newCaravan: 'Yeni kervan ({cost})', eventPlague: 'Veba', eventFestival: 'Şenlik',
+    quickQuarter: '1/4', quickHalf: '1/2', quickMax: 'Max', quickQuarterAria: 'Çeyrek miktar (1/4)', quickHalfAria: 'Yarı miktar (1/2)', quickMaxAria: 'Maksimum miktar (Max)',
     caravan: 'Kervan {n}', inCity: 'Konum: {city}', onRoad: 'Yolda → {city}', resting: 'Gece molası: {han}', camping: 'Açıkta kamp', eta: 'Varış ~{t}',
     cargo: 'Yük', empty: 'Boş', camels: 'Deve', guards: 'Muhafız', upkeep: 'Günlük gider', capacity: 'Kapasite', route: 'Rota', goTo: 'Şuraya git', openMarket: 'Pazarı aç',
     buyCamel: 'Deve al ({c})', sellCamel: 'Deve sat (+{c})', hire: 'Tut ({c})', dismiss: 'Bırak', perDay: '/gün', paid: 'ort. {p}',
@@ -3386,6 +3423,7 @@ const STR = {
     tradeWith: 'Trading', noCaravanHere: 'No caravan of yours here. Send one to trade.', sendHere: 'Send selected caravan ({eta})', sendHereRoad: 'Redirect selected caravan here',
     buyN: 'Buy {n}', sellN: 'Sell {n}', costPrev: '{n} units · total <b>{total}</b> akçe (avg {avg}) · price {p0} → {p1}', notEnough: 'Not enough akçe',
     sellAll: 'Sell all', maxBuy: 'Max', apply: 'Apply', newCaravan: 'New caravan ({cost})', eventPlague: 'Plague', eventFestival: 'Festival',
+    quickQuarter: '1/4', quickHalf: '1/2', quickMax: 'Max', quickQuarterAria: 'Quarter quantity (1/4)', quickHalfAria: 'Half quantity (1/2)', quickMaxAria: 'Maximum quantity (Max)',
     caravan: 'Caravan {n}', inCity: 'In {city}', onRoad: 'On the road → {city}', resting: 'Resting at {han}', camping: 'Camping in the open', eta: 'ETA ~{t}',
     cargo: 'Cargo', empty: 'Empty', camels: 'Camels', guards: 'Guards', upkeep: 'Upkeep per day', capacity: 'Capacity', route: 'Route', goTo: 'Go to', openMarket: 'Open market',
     buyCamel: 'Buy camel ({c})', sellCamel: 'Sell camel (+{c})', hire: 'Hire ({c})', dismiss: 'Dismiss', perDay: '/day', paid: 'avg {p}',
@@ -4600,14 +4638,36 @@ function rumorBox(id, cv) {
     <div class="row sp" style="margin:6px 0;gap:6px;flex-wrap:wrap"><span class="muted">${trusted ? '★ ' : ''}${src}</span>${btn}</div>
     ${rumorCards(5)}`;
 }
+function maxAffordable(cv, g, cap) {
+  if (!cv || !cv.city || !g) return 0;
+  if (sim && typeof sim.maxAffordable === 'function') return sim.maxAffordable(cv, g, cap);
+  if (cap == null) cap = Math.min(sim.freeSpace(cv), sim.maxBuyable(cv.city, g));
+  cap = Math.max(0, Math.floor(+cap || 0));
+  if (cap <= 0) return 0;
+  let q = cap;
+  while (q > 0 && sim.quote(cv.city, g, q).total > sim.S.akce) q = Math.floor(q * 0.9);
+  while (q < cap && sim.quote(cv.city, g, q + 1).total <= sim.S.akce) q++;
+  return Math.max(0, q);
+}
+window.maxAffordable = maxAffordable;
+
 function tradeBox(cv, g) {
   const id = cv.city, have = cv.cargo[g] || 0, maxB = Math.min(sim.freeSpace(cv), sim.maxBuyable(id, g));
+  const maxAff = maxAffordable(cv, g, maxB);
+  const canQuick = have > 0 || maxAff > 0 || maxB > 0;
   return `<div class="trade" id="tradeBox">
     <div class="row sp" style="margin-bottom:6px">
       <span class="muted" style="font-size:12.5px">${t('cargo')}: <b>${have}</b></span>
       <span class="muted" style="font-size:12.5px">${t('capacity')}: <b>${sim.freeSpace(cv)}</b> ${t('empty')}</span>
     </div>
-    <input type="range" id="tSlider" min="${-have}" max="${maxB}" step="1" value="${Math.max(-have, Math.min(maxB, openTrade.v))}" aria-label="${goodName(g)}">
+    <div class="trade-slider-wrap">
+      <input type="range" id="tSlider" min="${-have}" max="${maxB}" step="1" value="${Math.max(-have, Math.min(maxB, openTrade.v))}" aria-label="${goodName(g)}">
+      <div class="quick-trade-group">
+        <button type="button" class="btn sm quick-btn" id="tQtr" data-quick="1/4" ${canQuick ? '' : 'disabled'} aria-label="${t('quickQuarterAria')}" title="${t('quickQuarterAria')}">${t('quickQuarter')}</button>
+        <button type="button" class="btn sm quick-btn" id="tHalf" data-quick="1/2" ${canQuick ? '' : 'disabled'} aria-label="${t('quickHalfAria')}" title="${t('quickHalfAria')}">${t('quickHalf')}</button>
+        <button type="button" class="btn sm quick-btn" id="tMax" data-quick="max" ${canQuick ? '' : 'disabled'} aria-label="${t('quickMaxAria')}" title="${t('quickMaxAria')}">${t('quickMax')}</button>
+      </div>
+    </div>
     <div class="row sp muted" style="font-size:12px"><span>${have ? t('sellN', { n: have }) : ''}</span><span>${t('buyN', { n: maxB })}</span></div>
     <div class="preview" id="tPrev"></div>
     <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">
@@ -4619,9 +4679,10 @@ function tradeBox(cv, g) {
     </div>
   </div>`;
 }
-function maxAffordable(cv, g, cap) { let q = cap; while (q > 0 && sim.quote(cv.city, g, q).total > sim.S.akce) q = Math.floor(q * 0.9); while (q < cap && sim.quote(cv.city, g, q + 1).total <= sim.S.akce) q++; return Math.max(0, q); }
+
 function wireTrade(cv, g) {
   const sl = $('tSlider'), prev = $('tPrev'), ap = $('tApply');
+  if (!sl || !cv) return;
   const upd = () => {
     const v = +sl.value; openTrade.v = v;
     if (!v) { prev.innerHTML = '&nbsp;'; ap.disabled = true; ap.textContent = t('apply'); return; }
@@ -4632,10 +4693,42 @@ function wireTrade(cv, g) {
   };
   sl.oninput = upd;
   sl.onpointerdown = () => { sliderBusy = true; }; sl.onpointerup = sl.onchange = () => { sliderBusy = false; };
-  $('tAllSell').onclick = () => { sl.value = sl.min; upd(); };
-  $('tMaxBuy').onclick = () => { sl.value = maxAffordable(cv, g, +sl.max); upd(); };
-  const s5 = $('tSub5'); if (s5) s5.onclick = () => { sl.value = Math.max(+sl.min, +sl.value - 5); upd(); };
-  const a5 = $('tAdd5'); if (a5) a5.onclick = () => { sl.value = Math.min(+sl.max, +sl.value + 5); upd(); };
+
+  // Quick trade proportion buttons (1/4, 1/2, Max)
+  const setQuick = (frac) => {
+    const have = (cv.cargo && cv.cargo[g]) || 0;
+    const maxB = Math.min(sim.freeSpace(cv), sim.maxBuyable(cv.city, g));
+    const maxAff = maxAffordable(cv, g, maxB);
+    const cur = +sl.value;
+
+    let isSell = false;
+    if (cur < 0) isSell = true;
+    else if (cur > 0) isSell = false;
+    else if (have > 0 && (maxAff === 0 || roleOf(cv.city, g) !== 'P')) isSell = true;
+    else isSell = false;
+
+    if (isSell) {
+      if (have <= 0) { sl.value = 0; }
+      else if (frac >= 1) { sl.value = -have; }
+      else { sl.value = -Math.max(1, Math.round(have * frac)); }
+    } else {
+      if (maxAff <= 0) { sl.value = 0; }
+      else if (frac >= 1) { sl.value = maxAff; }
+      else { sl.value = Math.max(1, Math.round(maxAff * frac)); }
+    }
+    sl.value = Math.max(+sl.min, Math.min(+sl.max, +sl.value));
+    sl.dispatchEvent(new Event('input', { bubbles: true }));
+    upd();
+  };
+
+  const qtr = $('tQtr'); if (qtr) qtr.onclick = () => { Sound.click(); setQuick(0.25); };
+  const hlf = $('tHalf'); if (hlf) hlf.onclick = () => { Sound.click(); setQuick(0.5); };
+  const mx = $('tMax'); if (mx) mx.onclick = () => { Sound.click(); setQuick(1.0); };
+
+  const as = $('tAllSell'); if (as) as.onclick = () => { Sound.click(); sl.value = sl.min; upd(); };
+  const mb = $('tMaxBuy'); if (mb) mb.onclick = () => { Sound.click(); sl.value = maxAffordable(cv, g, +sl.max); upd(); };
+  const s5 = $('tSub5'); if (s5) s5.onclick = () => { Sound.click(); sl.value = Math.max(+sl.min, +sl.value - 5); upd(); };
+  const a5 = $('tAdd5'); if (a5) a5.onclick = () => { Sound.click(); sl.value = Math.min(+sl.max, +sl.value + 5); upd(); };
   ap.onclick = () => {
     const v = +sl.value;
     const r = v > 0 ? sim.buy(cv, g, v) : sim.sell(cv, g, -v);
@@ -5284,7 +5377,7 @@ function updateDebug() {
 window.kervan = {
   get sim() { return sim; }, get state() { return sim.S; }, get game() { return game; }, get bot() { return bot; },
   renderer, scene, camera, cam, world, assets: ASSETS, newGame, loadGame, fastForward, select: selectCaravan, openCity, openHan, openPause, showSettings, showLedger, toTitle,
-  spawnTradeFloatingText,
+  spawnTradeFloatingText, maxAffordable,
   info: () => ({ perf: { ...perf }, fps, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, errors: window.__errors.slice() }),
 };
 if (FLAGS.debug) window.kervanSim = (seconds) => fastForward(seconds);
