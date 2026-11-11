@@ -624,6 +624,16 @@ table.goods td.g { display: flex; align-items: center; gap: 7px; font-weight: 70
               inset 0 0 0 2px rgba(252, 244, 226, 0.95),
               inset 0 0 0 3px rgba(99, 63, 34, 0.35);
   transition: transform .15s ease, box-shadow .15s ease;
+  touch-action: manipulation;
+}
+/* Touch padding hitbox expansion for labels */
+.lbl::after {
+  content: '';
+  position: absolute;
+  inset: -10px -14px;
+}
+.lbl.eta::after, .lbl.warn::after {
+  pointer-events: none;
 }
 .lbl:hover {
   transform: translate(-50%, -105%) scale(1.05);
@@ -679,7 +689,8 @@ table.goods td.g { display: flex; align-items: center; gap: 7px; font-weight: 70
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 @media (pointer: coarse) {
-  .lbl { min-height: 44px; padding: 8px 14px; }
+  .lbl { min-height: 46px; padding: 8px 16px; }
+  .lbl::after { inset: -14px -18px; }
   .lbl.han { min-height: 44px; padding: 8px 14px; }
   table.goods td { padding: 12px 6px; }
   .trade input[type=range], .trade-slider-wrap input[type=range] { height: 44px; }
@@ -1018,6 +1029,8 @@ kbd {
   .cols { grid-template-columns: 1fr; }
   .set { grid-template-columns: 100px 1fr 40px; }
   .pause-keys { grid-template-columns: 1fr; }
+  .lbl { min-height: 44px; padding: 7px 14px; }
+  .lbl::after { inset: -14px -18px; }
 }
 
 @media (max-width: 420px) {
@@ -4159,6 +4172,8 @@ function updateCamera(dt) {
 }
 function clampCam() { cam.tx = Math.max(-118, Math.min(118, cam.tx)); cam.tz = Math.max(-72, Math.min(76, cam.tz)); cam.tdist = Math.max(32, Math.min(240, cam.tdist)); }
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -2);
+if (ray.params && ray.params.Points) ray.params.Points.threshold = 6;
+if (ray.params && ray.params.Line) ray.params.Line.threshold = 4;
 function groundAt(px, py) {
   ndc.set(px / innerWidth * 2 - 1, -(py / innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
@@ -4170,13 +4185,66 @@ function toScreen(x, y, z) {
   return { x: (_v.x + 1) / 2 * innerWidth, y: (1 - _v.y) / 2 * innerHeight, vis: _v.z < 1 && _v.z > -1 };
 }
 function pick(px, py) {
-  // screen-space picking, generous for touch
-  const touch = lastPointerType === 'touch' ? 1.6 : 1;
+  // Mobile touch hitboxes: generous screen-space radius + 3D ground raycast proximity
+  const isTouchOrNarrow = lastPointerType === 'touch' || isNarrow() || (window.matchMedia && matchMedia('(pointer: coarse)').matches) || innerWidth <= 760;
+  const touchMult = isTouchOrNarrow ? 1.85 : 1.15;
+  const touchPad = isTouchOrNarrow ? (innerWidth <= 420 ? 32 : 24) : 8;
+  const gp = groundAt(px, py);
   let best = null;
-  const consider = (kind, id, x, y, z, r) => { const s = toScreen(x, y, z); if (!s.vis) return; const d = Math.hypot(s.x - px, s.y - py); if (d < r * touch && (!best || d / r < best.score)) best = { kind, id, score: d / r }; };
-  for (const cv of sim.playerCaravans()) if (cv._pos) consider('caravan', cv.id, cv._pos.x, (cv._y || 0) + 2.2, cv._pos.z, 30);
-  for (const id of CITY_IDS) consider('city', id, CITIES[id].x, CITIES[id].base + 2, CITIES[id].z, 44);
-  for (const id in HANS) consider('han', id, HANS[id].x, sampleH(HANS[id].x, HANS[id].z) + 1.5, HANS[id].z, 24);
+
+  const consider = (kind, id, x, y, z, baseScreenR, baseWorldR) => {
+    const s = toScreen(x, y, z);
+    if (!s.vis) return;
+    const dScreen = Math.hypot(s.x - px, s.y - py);
+    const maxScreenD = baseScreenR * touchMult + touchPad;
+    const hitScreen = dScreen < maxScreenD;
+
+    let hitWorld = false;
+    let normWorld = 1;
+    if (gp && baseWorldR) {
+      const dWorld = Math.hypot(gp.x - x, gp.z - z);
+      const maxWorldD = baseWorldR * (isTouchOrNarrow ? 1.8 : 1.15);
+      if (dWorld < maxWorldD) {
+        hitWorld = true;
+        normWorld = dWorld / maxWorldD;
+      }
+    }
+
+    if (hitScreen || hitWorld) {
+      const normScreen = dScreen / maxScreenD;
+      const score = Math.min(normScreen, normWorld);
+      if (!best || score < best.score) best = { kind, id, score };
+    }
+  };
+
+  // 1. Caravans: expanded hit target for rider and trailing camels
+  for (const cv of sim.playerCaravans()) {
+    if (cv._pos) {
+      consider('caravan', cv.id, cv._pos.x, (cv._y || 0) + 2.2, cv._pos.z, 46, 12);
+      if (cv.camels > 1 && typeof members === 'function') {
+        const m = members(cv);
+        if (m && m.camels && m.camels.length) {
+          const midCamel = m.camels[Math.floor(m.camels.length / 2)];
+          if (midCamel) consider('caravan', cv.id, midCamel.x, sampleH(midCamel.x, midCamel.z) + 2.0, midCamel.z, 42, 10);
+        }
+      }
+    }
+  }
+
+  // 2. City nodes: generous radius covering 3D footprint, base, and elevated landmark center
+  for (const id of CITY_IDS) {
+    const c = CITIES[id];
+    consider('city', id, c.x, c.base + 2, c.z, 60, 24);
+    consider('city', id, c.x, c.base + 6, c.z, 60, 24);
+    consider('city', id, c.x, c.base + 10, c.z, 60, 24);
+  }
+
+  // 3. Caravanserais (Hans)
+  for (const id in HANS) {
+    const h = HANS[id];
+    consider('han', id, h.x, sampleH(h.x, h.z) + 1.5, h.z, 36, 15);
+  }
+
   return best;
 }
 const pointers = new Map();
@@ -4197,7 +4265,9 @@ canvas.addEventListener('pointermove', (e) => {
     cam.tdist = pinch0.dist * pinch0.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)); clampCam(); return;
   }
   if (!downAt) return;
-  if (!dragging && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 7) dragging = true;
+  const isTouchOrNarrow = lastPointerType === 'touch' || isNarrow() || (window.matchMedia && matchMedia('(pointer: coarse)').matches) || innerWidth <= 760;
+  const dragThreshold = isTouchOrNarrow ? 15 : 7;
+  if (!dragging && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > dragThreshold) dragging = true;
   if (dragging && downAt.g) {
     // keep the grabbed ground point under the finger
     const saved = [cam.x, cam.z]; cam.x = downAt.cx; cam.z = downAt.cz; updateCameraInstant();
@@ -4213,7 +4283,10 @@ const endPointer = (e) => {
   pointers.delete(e.pointerId);
   if (pointers.size < 2) pinch0 = null;
   if (was && pointers.size === 0) {
-    if (!dragging && downAt && e.type === 'pointerup') clickAt(e.clientX, e.clientY);
+    if (!dragging && downAt && e.type === 'pointerup') {
+      const tapX = downAt ? downAt.x : e.clientX, tapY = downAt ? downAt.y : e.clientY;
+      clickAt(tapX, tapY);
+    }
     downAt = null; dragging = false;
   }
 };
@@ -5377,7 +5450,7 @@ function updateDebug() {
 window.kervan = {
   get sim() { return sim; }, get state() { return sim.S; }, get game() { return game; }, get bot() { return bot; },
   renderer, scene, camera, cam, world, assets: ASSETS, newGame, loadGame, fastForward, select: selectCaravan, openCity, openHan, openPause, showSettings, showLedger, toTitle,
-  spawnTradeFloatingText, maxAffordable,
+  spawnTradeFloatingText, maxAffordable, pick, groundAt, toScreen, clickAt, ray,
   info: () => ({ perf: { ...perf }, fps, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, errors: window.__errors.slice() }),
 };
 if (FLAGS.debug) window.kervanSim = (seconds) => fastForward(seconds);
