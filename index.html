@@ -2528,7 +2528,14 @@ const store = {
   del(k) { try { localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } },
 };
 const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 620;
-const settings = Object.assign({ master: 0.8, music: 0.6, sfx: 0.8, lang: /^tr/i.test(navigator.language || '') ? 'tr' : 'en', quality: isPhone ? 'low' : 'high', musicOn: true, sfxOn: true, muted: false }, store.get(SKEY) || {});
+// Auto low-quality profile detection: check navigator.hardwareConcurrency and device pixel ratio
+function detectLowSpec() {
+  const hw = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 4;
+  const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+  return isPhone || hw <= 4 || dpr < 1 || (hw <= 6 && dpr <= 1.25);
+}
+const isLowSpec = detectLowSpec();
+const settings = Object.assign({ master: 0.8, music: 0.6, sfx: 0.8, lang: /^tr/i.test(navigator.language || '') ? 'tr' : 'en', quality: isLowSpec ? 'low' : 'high', musicOn: true, sfxOn: true, muted: false }, store.get(SKEY) || {});
 if (FLAGS.lang) settings.lang = FLAGS.lang === 'en' ? 'en' : 'tr';
 const saveSettings = () => store.set(SKEY, settings);
 const lowQ = () => FLAGS.low || settings.quality === 'low';
@@ -5451,6 +5458,7 @@ window.kervan = {
   get sim() { return sim; }, get state() { return sim.S; }, get game() { return game; }, get bot() { return bot; },
   renderer, scene, camera, cam, world, assets: ASSETS, newGame, loadGame, fastForward, select: selectCaravan, openCity, openHan, openPause, showSettings, showLedger, toTitle,
   spawnTradeFloatingText, maxAffordable, pick, groundAt, toScreen, clickAt, ray,
+  settings, lowQ, isLowSpec, detectLowSpec,
   info: () => ({ perf: { ...perf }, fps, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, errors: window.__errors.slice() }),
 };
 if (FLAGS.debug) window.kervanSim = (seconds) => fastForward(seconds);
