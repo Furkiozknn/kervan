@@ -2989,7 +2989,8 @@ function detectLowSpec() {
 }
 const isLowSpec = detectLowSpec();
 const settings = Object.assign({ master: 0.8, music: 0.6, sfx: 0.8, lang: /^tr/i.test(navigator.language || '') ? 'tr' : 'en', quality: isLowSpec ? 'low' : 'high', musicOn: true, sfxOn: true, muted: false }, store.get(SKEY) || {});
-if (FLAGS.lang) settings.lang = FLAGS.lang === 'en' ? 'en' : 'tr';
+if (settings.lang !== 'tr' && settings.lang !== 'en') settings.lang = (/^tr/i.test(navigator.language || '') ? 'tr' : 'en'); // stored unknown language -> browser's
+if (FLAGS.lang === 'en' || FLAGS.lang === 'tr') settings.lang = FLAGS.lang;
 const saveSettings = () => store.set(SKEY, settings);
 const lowQ = () => FLAGS.low || settings.quality === 'low';
 
