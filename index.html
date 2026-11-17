@@ -841,6 +841,15 @@ table.goods td.g { display: flex; align-items: center; gap: 7px; font-weight: 70
 }
 #title .load { margin-top: 10px; font-size: 14px; color: var(--ink-mute); }
 .cont-sub { font-size: 13.5px; opacity: .88; font-weight: normal; margin-left: 4px; }
+/* Yazı denetimi (2026-11): başlık kartı alt bilgiyi ('Claude Game Arena · yapan: …') örtüyordu;
+   telefonda 'Günün Meydan Okuması' üç satıra eziliyordu — alt yazı düğmede alt satıra iner */
+#title { padding-bottom: 34px; }
+#title .box { max-height: calc(100vh - 60px); max-height: calc(100dvh - 60px); }
+@media (max-width: 520px) {
+  #tDaily { flex-direction: column; gap: 2px; }
+  #tDaily { height: auto; min-height: 56px; padding-top: 8px; padding-bottom: 8px; }
+  #tDaily .cont-sub { margin-left: 0; font-size: 12px; line-height: 1.25; }
+}
 
 /* Modal Architecture */
 .modal {
