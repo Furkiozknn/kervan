@@ -38,6 +38,14 @@
 - **Rigorous bot-tested economy:** The automated `?auto` bot plays with identical player actions and won 12 of 12 seeded runs between day 158 and day 211 (day 142 on seed 5, day 212 on seed 3) with 0 JS errors, while a careless bot went bankrupt in the first season every time.
 - **Ultra-lean web performance:** A single `index.html` running Three.js r170 delivering ~60 fps at 25–29 draw calls on Intel UHD 620 (1280x720, 110k &rarr; 132k triangles; 27 calls on `?low`), with an optional 1,090 KB asset pass under a 3 MB budget.
 
+## What's new in v2.1 (November 2026)
+
+- **Version tag and "What's new" window** on the title screen (Turkish and English), with the last 8 finished trips and four badges (first victory, swift caravan = win before day 180, three stars, five trips). The log is stored locally under `arena.kervan.history`; the save, best score and settings keys are untouched.
+- **Touch targets:** the 1x/2x/4x speed buttons are 44 px on touch screens.
+- **Accessibility:** the map and panel labels follow the chosen language.
+- **Page:** Turkish title, description and share card, icon, `theme-color`, `canonical`, a Turkish `404.html` and a "More games" link on the title screen (hidden on portal builds).
+- **Test:** `node test/duman.mjs` is a smoke test (page loads, no console errors, game starts, pause, What's new window, phone overflow, bot run, old best score still reads). It needs `playwright-core` and a Chromium-based browser (`PW_MODULE`, `CHROMIUM`); nothing is added to the repo. Full list in [CHANGELOG.md](CHANGELOG.md).
+
 ## How to play
 
 > [!TIP]
@@ -75,7 +83,7 @@
 | Fullscreen | Settings | `F11` |
 
 - **Global hotkeys:** `P` / `Esc` pause, `M` music, `X` effects, `L` language, `1` `2` `3` speed (1x, 2x, 4x), `C` cycle caravans.
-- **Persistence:** Settings (master, music and effects volume, TR / EN, Low / High quality, fullscreen) are saved in `localStorage` under `arena.kervan.settings`; the run under `arena.kervan.save`, the best score under `arena.kervan.best`. Turkish is the default language.
+- **Persistence:** Settings (master, music and effects volume, TR / EN, Low / High quality, fullscreen) are saved in `localStorage` under `arena.kervan.settings`; the run under `arena.kervan.save`, the best score under `arena.kervan.best`, the last 8 trips under `arena.kervan.history`. Turkish is the default language.
 
 <details>
 <summary><b>URL flags for testing</b></summary>
