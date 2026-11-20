@@ -3,17 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kervan</title>
+<title>Kervan · İpek Yolu Ticaret Oyunu</title>
 <meta name="arena-game" content="kervan">
-<meta name="description" content="A 3D Silk Road trade game across Anatolia: lead camel caravans between seven cities, buy low, sell high and build caravanserais before year five. Plays in the browser.">
+<meta name="description" content="Anadolu'da develerle kervan yürüt: yedi şehir arasında ucuza al, pahalıya sat, kervansaray kur. Tarayıcıda ücretsiz, kurulum yok.">
+<meta name="theme-color" content="#5A2F17">
+<link rel="canonical" href="https://furkiozknn.github.io/kervan/">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235A2F17'/%3E%3Cpath d='M12 50V34a20 20 0 0 1 40 0v16z' fill='%23E0B97A'/%3E%3Ccircle cx='32' cy='28' r='8' fill='%23F5B041'/%3E%3Cpath d='M12 50h40v4H12z' fill='%23B4532A'/%3E%3C/svg%3E">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Kervan · Silk Road Caravan">
-<meta property="og:description" content="A 3D Silk Road trade game across Anatolia: lead camel caravans between seven cities, buy low, sell high and build caravanserais before year five. Plays in the browser.">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:title" content="Kervan · İpek Yolu Ticaret Oyunu">
+<meta property="og:description" content="Anadolu'da develerle kervan yürüt: yedi şehir arasında ucuza al, pahalıya sat, kervansaray kur. Tarayıcıda ücretsiz.">
 <meta property="og:url" content="https://furkiozknn.github.io/kervan/">
 <meta property="og:image" content="https://furkiozknn.github.io/kervan/docs/card.jpg">
 <meta property="og:image:width" content="960">
 <meta property="og:image:height" content="540">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kervan · İpek Yolu Ticaret Oyunu">
+<meta name="twitter:description" content="Anadolu'da develerle kervan yürüt: ucuza al, pahalıya sat, kervansaray kur. Tarayıcıda ücretsiz.">
+<meta name="twitter:image" content="https://furkiozknn.github.io/kervan/docs/card.jpg">
 <link rel="preload" href="assets/fonts/marcellus-tr.woff2" as="font" type="font/woff2" crossorigin>
 <script>
 // error capture before anything else loads (shown by ?debug)
@@ -986,6 +993,21 @@ kbd {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 #fatal { position: fixed; inset: auto 12px 12px 12px; z-index: 70; padding: 14px; color: #fff; background: #7A1E12; border-radius: 10px; font-size: 14px; }
+
+
+/* v2.1: Yenilikler penceresi, sürüm etiketi, küçük başlık bağlantıları */
+#title .minirow { display: flex; gap: 8px; margin-top: 12px; }
+#title .minirow .btn { flex: 1; min-height: 44px; font-size: 13.5px; padding: 0 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; text-align: center; }
+.newslist { margin: 0 0 12px; padding-left: 20px; font-size: 14.5px; line-height: 1.5; color: var(--ink-dim); }
+.newslist li { margin-bottom: 6px; }
+.modal h3 { margin: 12px 0 6px; font-size: 15px; letter-spacing: .04em; color: var(--terra-deep); }
+.histlist, .badgelist { list-style: none; margin: 0 0 8px; padding: 0; font-size: 14px; color: var(--ink-dim); }
+.histlist li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--rule); }
+.badgelist li { padding: 3px 0; opacity: .55; }
+.badgelist li.on { opacity: 1; color: var(--ink); font-weight: 700; }
+.badgelist li::before { content: '\25CB  '; }
+.badgelist li.on::before { content: '\2605  '; color: var(--gold-dark); }
+@media (pointer: coarse) { .seg .btn, #hud .seg .btn { min-height: 44px; min-width: 44px; } }
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
@@ -3947,6 +3969,11 @@ Object.assign(STR.tr, {
   dailySub: 'Herkese aynı pazarlar · seri {s} gün · en iyi {b}', dailyDone: 'bugün tamam', dailyTag: 'Günün Meydan Okuması · {d}',
   dailyStreak: 'Seri: {s} gün · en iyi: {b}', shareScore: '{score} puan · {stars} yıldız · {day}. gün',
   awWin: 'Kervan: ilk zafer', awStars: 'Kervan: üç yıldız',
+  news: 'Yenilikler', otherGames: 'Diğer oyunlar', newsTitle: 'Yenilikler', histTitle: 'Son seferler', noHist: 'Henüz bitirdiğin sefer yok.', badgesTitle: 'Rozetler',
+  histWon: 'Zafer', histBankrupt: 'İflas', histTimeout: 'Süre doldu', histRow: '{n}. gün · {stars} yıldız · {score} puan',
+  bgWin: 'İlk zafer', bgFast: 'Hızlı kervan (180. günden önce zafer)', bgStars: 'Üç yıldız', bgFive: 'Beş sefer tamamla',
+  awFast: 'Kervan: hızlı kervan',
+  newsItems: ['Başlık ekranında sürüm etiketi ve bu pencere: yenilikler, son 8 sefer ve rozetler.', 'Son seferler kaydı yalnız bu cihazda tutulur; mevcut kayıt ve en iyi skor aynen duruyor.', 'Yeni rozetler: İlk zafer, Hızlı kervan, Üç yıldız, Beş sefer.', 'Telefonda hız düğmeleri 44 piksel dokunma alanına çıktı.', 'Sayfa: Türkçe başlık ve açıklama, paylaşım kartı, simge, tema rengi, Türkçe 404 sayfası ve «Diğer oyunlar» bağlantısı.', 'Ekran okuyucu etiketleri seçili dile uyuyor.'],
 });
 Object.assign(STR.en, {
   rumors: 'Han rumours', rumorBuy: 'Buy a rumour ({c} akçe)', rumorWait: 'No fresh talk here, wait until day {n}',
@@ -3961,6 +3988,11 @@ Object.assign(STR.en, {
   dailySub: 'Same markets for everyone · streak {s} · best {b}', dailyDone: 'done today', dailyTag: 'Daily challenge · {d}',
   dailyStreak: 'Streak: {s} · best: {b}', shareScore: '{score} points · {stars} stars · day {day}',
   awWin: 'Kervan: first victory', awStars: 'Kervan: three stars',
+  news: 'What\'s new', otherGames: 'More games', newsTitle: 'What\'s new', histTitle: 'Recent trips', noHist: 'No finished trips yet.', badgesTitle: 'Badges',
+  histWon: 'Victory', histBankrupt: 'Bankrupt', histTimeout: 'Out of time', histRow: 'day {n} · {stars} stars · {score} points',
+  bgWin: 'First victory', bgFast: 'Swift caravan (win before day 180)', bgStars: 'Three stars', bgFive: 'Finish five trips',
+  awFast: 'Kervan: swift caravan',
+  newsItems: ['Version tag on the title screen and this window: what\'s new, the last 8 trips and badges.', 'The trip log stays on this device only; your save and best score are untouched.', 'New badges: First victory, Swift caravan, Three stars, Five trips.', 'On phones the speed buttons now have a 44 px touch area.', 'Page: Turkish title and description, share card, icon, theme colour, a Turkish 404 page and a "More games" link.', 'Screen-reader labels follow the chosen language.'],
 });
 function t(key, p) {
   const L = STR[settings.lang] || STR.tr;
@@ -5578,7 +5610,7 @@ function arenaEnd(result, sc) {
   const others = Arena.games.filter((g) => g !== 'kervan');
   out.other = others[(Date.now() / 60000 | 0) % others.length];
   if (FLAGS.auto) return out;
-  if (result === 'won') { Arena.award('kervan-win', t('awWin')); if (sc.stars >= 3) Arena.award('kervan-3stars', t('awStars')); }
+  if (result === 'won') { Arena.award('kervan-win', t('awWin')); if (sc.stars >= 3) Arena.award('kervan-3stars', t('awStars')); if (sc.day <= 180) Arena.award('kervan-fast', t('awFast')); }
   if (sim.S.daily) {
     const d = Arena.daily();
     if (d.day === sim.S.daily) { const r = d.complete(sc.score); out.streak = t('dailyStreak', { s: r.streak, b: r.best }); }
@@ -5590,6 +5622,7 @@ function showEnd(result) {
   if (result === 'won') game.wonShown = true;
   game.modalKind = 'end';
   const sc = sim.score(), rec = recordBest(), ar = arenaEnd(result, sc);
+  recordHistory(result, sc);
   const title = result === 'won' ? t('won') : result === 'bankrupt' ? t('bankrupt') : t('timeout');
   const text = result === 'won' ? t('wonText', { day: sc.day }) : result === 'bankrupt' ? t('bankruptText') : t('timeoutText');
   const stars = result === 'won' ? `<div class="stars">${[0, 1, 2].map((i) => (i < sc.stars ? ICON.star : ICON.starOff)).join('')}</div>` : '';
@@ -5609,6 +5642,28 @@ function showEnd(result) {
   if (window.Arena && Arena.complete) Arena.complete({ mount: document.querySelector('#modal .menu') });   // arena-kit v1.1: kervan/complete + one-tap 👍/👎 (nothing on ?auto)
 }
 
+// --- v2.1: sürüm etiketi, Yenilikler penceresi, son seferler (yerel) ---
+const VERSION_TAG = 'v2.1 · Kasım 2026', HISTKEY = 'arena.kervan.history';
+function recordHistory(result, sc) {
+  if (FLAGS.auto) return;
+  const h = store.get(HISTKEY); const list = Array.isArray(h) ? h : [];
+  list.unshift({ r: result, score: Math.round(sc.score), stars: sc.stars | 0, day: sc.day | 0 });
+  store.set(HISTKEY, list.slice(0, 8));
+}
+function showNews() {
+  game.modalKind = 'news';
+  const h = store.get(HISTKEY), list = Array.isArray(h) ? h : [];
+  const won = list.filter((x) => x.r === 'won');
+  const badges = [['bgWin', won.length > 0], ['bgFast', won.some((x) => x.day <= 180)], ['bgStars', won.some((x) => x.stars >= 3)], ['bgFive', list.length >= 5]];
+  const hist = list.length ? `<ul class="histlist">${list.map((x) => `<li><span>${t(x.r === 'won' ? 'histWon' : x.r === 'bankrupt' ? 'histBankrupt' : 'histTimeout')}</span><span>${t('histRow', { n: x.day, stars: x.stars, score: fmt(x.score) })}</span></li>`).join('')}</ul>` : `<p class="muted">${t('noHist')}</p>`;
+  const m = modal(`<h2>${t('newsTitle')}</h2><p class="muted" style="text-align:center;margin:0 0 8px">${VERSION_TAG}</p>
+    <ul class="newslist">${t('newsItems').map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+    <h3>${t('histTitle')}</h3>${hist}
+    <h3>${t('badgesTitle')}</h3><ul class="badgelist">${badges.map(([k, on]) => `<li class="${on ? 'on' : ''}">${t(k)}</li>`).join('')}</ul>
+    <div class="menu"><button class="btn primary" id="nClose">${t('close')}</button></div>`, true);
+  m.querySelector('#nClose').onclick = closeModal;
+}
+
 // --- title screen ---
 function renderTitle() {
   $('titleLogo').innerHTML = LOGO;
@@ -5622,6 +5677,11 @@ function renderTitle() {
     ${canCont ? `<button class="btn" id="tCont" ${worldReady ? '' : 'disabled'}>${t('cont')}${contDetails}</button>` : ''}
     ${dly ? `<button class="btn" id="tDaily" ${worldReady ? '' : 'disabled'}>${t('daily')} <span class="cont-sub">(${dly.done ? t('dailyDone') + ' · ' : ''}${t('dailySub', { s: dly.streak, b: dly.best })})</span></button>` : ''}
     <div class="row" style="gap:8px"><button class="btn" id="tSet" style="flex:1">${ICON.gear}${t('settings')}</button><button class="btn" id="tLang" style="flex:1">${ICON.lang}${t('langName')}</button></div>`;
+  const onPortal = !!(window.Arena && Arena.portal && Arena.portal.name !== 'none');
+  $('tMenu').insertAdjacentHTML('beforeend', `<div class="minirow"><button class="btn" id="tNews">${VERSION_TAG} · ${t('news')}</button>${onPortal ? '' : `<a class="btn" id="tOther" href="https://furkiozknn.github.io/" target="_blank" rel="noopener">${t('otherGames')}</a>`}</div>`);
+  const nw = $('tNews'); if (nw) nw.onclick = () => { Sound.init(); showNews(); };
+  const cvs = $('c'); if (cvs) cvs.setAttribute('aria-label', settings.lang === 'tr' ? 'Kervan haritası' : 'Kervan map');
+  $('cvPanel').setAttribute('aria-label', settings.lang === 'tr' ? 'kervan' : 'caravan'); $('cityPanel').setAttribute('aria-label', settings.lang === 'tr' ? 'şehir' : 'city');
   const best = store.get(BESTKEY);
   $('tBest').innerHTML = best ? `${ICON.star} <span>${t('best', { score: fmt(best.score), stars: best.stars, day: best.day })}</span>` : t('noBest');
   $('footer').textContent = t('footer', { model: MODEL });
@@ -5660,7 +5720,7 @@ addEventListener('keydown', (e) => {
   if (tag === 'INPUT' && e.key !== 'Escape') return;
   const k = e.key.toLowerCase();
   if (k === 'escape') {
-    if (game.modal) { if (game.modalKind === 'year') closeYear(); else if (game.modalKind === 'settings' || game.modalKind === 'ledger' || game.modalKind === 'pause') closeModal(); return; }
+    if (game.modal) { if (game.modalKind === 'year') closeYear(); else if (game.modalKind === 'settings' || game.modalKind === 'ledger' || game.modalKind === 'pause' || game.modalKind === 'news') closeModal(); return; }
     if (!game.started) return;
     if (game.openCity || game.openHan) { closePanels(); if (game.selCv) renderCvPanel(); return; }
     if (game.selCv) { game.selCv = null; $('cvPanel').classList.add('hidden'); refreshRoute(); renderCvBar(); return; }
