@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://furkiozknn.github.io/kervan/">
-    <img src="docs/card.jpg" width="100%" alt="Kervan: lead camel caravans across Anatolia, buy low, sell high. Click to play in your browser.">
+    <img src="docs/card-3d.jpg" width="100%" alt="Kervan: lead camel caravans across Anatolia, buy low, sell high. Click to play in your browser.">
   </a>
 </p>
 
@@ -32,11 +32,20 @@
 
 ## Features
 
+<p align="center">
+  <img src="docs/features.jpg" width="100%" alt="Kervan features: 7 cities and 1 living market with 3 rival merchants; start with 200 akçe and 3 camels; win before year 5 with 10,000 akçe and 3 caravanserais; bot-tested economy, 12 of 12 seeded runs won; one index.html, Three.js, about 60 fps.">
+</p>
+
+<details>
+<summary><b>Feature details</b></summary>
+
 - **Seven cities, one living market:** Trade across Bursa, Izmir, Konya, Aksaray, Göreme, Kayseri and Urfa, competing against 3 rival merchants whose automated trades shift prices and dynamic supply/demand across the plateau.
 - **Caravan logistics & hazards:** Start from Konya with 1 caravan, 3 camels carrying 10 units each, and 200 akçe; manage daily camel and guard upkeep, fend off road bandits, and navigate seasonal hazards like winter snow closing the Kayseri–Urfa pass.
 - **Caravanserai network & victory:** Amass 10,000 akçe in cash and build or restore 3 caravanserais before the end of year 5 to win, cut camel upkeep across all routes, and charge rival merchants for overnight stays.
 - **Rigorous bot-tested economy:** The automated `?auto` bot plays with identical player actions and won 12 of 12 seeded runs between day 158 and day 211 (day 142 on seed 5, day 212 on seed 3) with 0 JS errors, while a careless bot went bankrupt in the first season every time.
 - **Ultra-lean web performance:** A single `index.html` running Three.js r170 delivering ~60 fps at 25–29 draw calls on Intel UHD 620 (1280x720, 110k &rarr; 132k triangles; 27 calls on `?low`), with an optional 1,090 KB asset pass under a 3 MB budget.
+
+</details>
 
 ## What's new in v2.1 (November 2026)
 
@@ -48,12 +57,21 @@
 
 ## How to play
 
+<p align="center">
+  <img src="docs/how-to-play.jpg" width="100%" alt="How to play Kervan: select a caravan and click a city to send it; click a city to trade and drag sliders to buy or sell; restore caravanserais and hire guards against bandits; reach 10,000 akçe and 3 caravanserais by year 5. Controls for mouse, touch and keyboard are listed in the Controls section below.">
+</p>
+
+<details>
+<summary><b>Goal and steps</b></summary>
+
 > [!TIP]
 > **Goal:** Reach 10,000 akçe in cash **and** build or restore 3 caravanserais of your own before the end of year 5. A faster win earns more stars and a higher score; afterwards you can keep playing in endless mode.
 
 1. **Dispatch caravans:** Select a caravan (click the rider or press `C`), then click any connected city on the map to send it on its way with route and ETA displayed.
 2. **Trade the bazaar:** Click a city to open its market. Drag a good's slider left to sell or right to buy; preview totals, average prices, and price movements before confirming.
 3. **Expand and protect:** Restore caravanserais on long roads to shelter caravans at night, cut upkeep, and collect fees from rivals; hire guards to ward off bandits on neglected routes.
+
+</details>
 
 <details>
 <summary><b>Economy and rules</b></summary>
