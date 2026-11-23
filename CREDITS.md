@@ -15,4 +15,17 @@ asset-forge tool) and are covered by the game's MIT licence.
 | [Interface Sounds](https://kenney.nl/assets/interface-sounds) | Kenney | Kenney (kenney.nl) | CC0 | `sfx/click.mp3` |
 | [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Kenney | Kenney (kenney.nl) | CC0 | `sfx/step_*.mp3`, `sfx/step_snow_*.mp3` |
 
+## 3D chibi style (stil-3d, 23.11.2026)
+
+The figures in `assets/3d/` were generated for this game with the Gemini app (Nano Banana image model), using a frame of
+the game's own song video (Recraft V4.1 Pro, `atolye/muzik-reel/oyunlar/kervan/gorsel/genis.jpg`) as the style and
+character reference. Each request asked for an item sheet on a white background; the sheets were cut out and keyed
+locally with PIL (`atolye/oyun-stil/kervan/kes.py`).
+
+| File | Tool | Content |
+|---|---|---|
+| `3d/chibi.webp` | Gemini (Nano Banana), 2 requests: sheet + white-background edit | 3x3 sprite atlas on the map: caravan leader, the three rival merchants, guard, bandit, loaded and unloaded camel, bandit tent |
+| `3d/mal-*.webp` | Gemini (Nano Banana), 1 request | market goods (silk, spices, salt, copper, carpets, figs, ceramics), akçe pouch, caravanserai |
+| `3d/poz-*.webp` | Gemini (Nano Banana), 1 request | caravan leader and camel busts (title, panels, pause), leader cheering and sad (end card) |
+
 Three.js r170 (MIT) is loaded from jsDelivr. The music, bells, wind and bazaar murmur are still synthesised in code.

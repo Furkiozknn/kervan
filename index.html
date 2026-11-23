@@ -449,6 +449,7 @@ table.goods tr[data-g] {
 table.goods tr[data-g]:hover td { background: rgba(180, 83, 42, 0.1); }
 table.goods td.g { display: flex; align-items: center; gap: 7px; font-weight: 700; }
 .gi { width: 24px; height: 24px; flex: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
+img.gi3 { width: 30px; height: 30px; object-fit: contain; margin: -3px 0; filter: drop-shadow(0 2px 2px rgba(60, 30, 10, 0.3)); }
 .up { color: var(--good); }
 .dn { color: var(--bad); }
 .arrow { width: 14px; height: 14px; vertical-align: -2px; }
@@ -1091,11 +1092,46 @@ kbd {
   .modal .box { padding: 18px; }
   .modal h2 { font-size: 28px; margin-bottom: 6px; }
 }
+
+/* =================================================================================================
+   stil-3d (23.11.2026): the song video's soft 3D chibi world. Figures from assets/3d/, softer and rounder cards,
+   a light tilt-shift blur at the top of the map (the video's shallow depth of field).
+   ================================================================================================= */
+#dof { position: fixed; left: 0; right: 0; top: 0; height: 24vh; pointer-events: none; z-index: 0;
+  backdrop-filter: blur(2.2px) saturate(1.06); -webkit-backdrop-filter: blur(2.2px) saturate(1.06);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.55) 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.55) 55%, transparent 100%); }
+.glass { border-radius: 18px; box-shadow: inset 0 0 0 3px rgba(248, 238, 216, 0.95), inset 0 0 0 5px rgba(82, 50, 26, 0.35), inset 0 0 34px rgba(190, 120, 60, 0.18), 0 14px 34px rgba(70, 34, 10, 0.32), 0 3px 8px rgba(70, 34, 10, 0.18); }
+.btn { border-radius: 14px; box-shadow: inset 0 2px 0 rgba(255, 226, 185, 0.38), inset 0 -3px 0 rgba(30, 12, 4, 0.25), 0 3px 0 var(--leather2), 0 7px 14px rgba(60, 28, 8, 0.28); }
+.btn::after { border-radius: 11px; }
+.btn.primary { box-shadow: inset 0 2px 0 rgba(255, 238, 210, 0.5), inset 0 -3px 0 rgba(110, 36, 8, 0.35), 0 3px 0 #541E08, 0 8px 16px rgba(180, 83, 42, 0.35); }
+.btn.sm { border-radius: 11px; }
+.chip img.chipimg { width: 26px; height: 26px; object-fit: contain; flex: none; margin: -3px 0; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35)); }
+.panel .head img.fig3 { width: 54px; height: 58px; object-fit: contain; object-position: 50% 100%; flex: none; margin: -6px 0 -4px -4px; filter: drop-shadow(0 4px 5px rgba(70, 34, 10, 0.3)); }
+.panel .head img.fig3.han { width: 50px; height: 50px; object-fit: contain; margin-top: 0; }
+#title .logo { display: flex; justify-content: center; align-items: flex-end; gap: 0; height: 150px; margin-top: -6px; }
+#title .logo img.t3 { height: 100%; width: auto; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(70, 34, 10, 0.35)); }
+#title .logo img.t3.camel { height: 92%; margin-left: -10px; }
+.modal .endhead { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 4px; }
+.modal .endhead h2 { margin: 0; }
+.modal .endhead img.fig3 { height: 92px; width: auto; flex: none; filter: drop-shadow(0 6px 8px rgba(70, 34, 10, 0.35)); }
+@media (max-width: 760px) {
+  #title .logo { height: 112px; }
+  .modal .endhead img.fig3 { height: 76px; }
+}
+@media (max-height: 800px) and (min-width: 761px) {
+  #title .logo { height: 96px; }
+  .modal .endhead img.fig3 { height: 60px; }
+}
+@media (max-height: 500px) and (min-width: 761px) {
+  #title .logo { height: 62px; }
+  .modal .endhead img.fig3 { height: 44px; }
+}
 </style>
 <script data-goatcounter="https://furkiozknn.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <canvas id="c" tabindex="-1" aria-label="Kervan map"></canvas>
+<div id="dof" aria-hidden="true"></div>
 <div id="labels"></div>
 <div id="floatLayer"></div>
 <header id="hud" class="glass hidden"></header>
@@ -4065,7 +4101,8 @@ const GOOD_ICON = {
   figs: (c) => `<svg class="gi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c4 2.5 7 6 7 9.5A7 7 0 0 1 5 15.5C5 12 8 8.5 12 6z" fill="${c}"/><path d="M12 6V3.5M12 4l2.5-1" stroke="#6B8E3A" stroke-width="1.8" fill="none"/></svg>`,
   ceramics: (c) => `<svg class="gi" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v3c3 1.5 4.5 4.5 4 8-.5 4-3.5 7-7 7s-6.5-3-7-7c-.5-3.5 1-6.5 4-8z" fill="${c}"/><path d="M7 12c2 1.5 8 1.5 10 0" stroke="#F2EADB" stroke-width="1.4" fill="none"/><circle cx="12" cy="15.5" r="1.4" fill="#F2EADB"/></svg>`,
 };
-const goodIcon = (g) => GOOD_ICON[g](ECONOMY.goods[g].color);
+// stil-3d: the goods are the song video's 3D chibi props (assets/3d/mal-*.webp); the drawn SVG stays as the fallback
+const goodIcon = (g) => `<img class="gi gi3" src="assets/3d/mal-${g}.webp" alt="" draggable="false">`;
 
 // Grand Seljuk Caravanserai Taç Kapı & Golden-Hour Camel Caravan Logo
 const LOGO = `<svg viewBox="0 0 120 120" aria-hidden="true">
@@ -4444,6 +4481,72 @@ function ribbon(mesh, pts, fromIdx, startPt) {
   mesh.visible = n > 0;
 }
 
+// --- stil-3d: chibi sprites from the song video (assets/3d/chibi.webp, 3x3 atlas) -----------------------
+// Caravan leaders, camels, guards, bandits and their tents are drawn as camera-facing cut-outs of the video's
+// 3D chibi figures, one draw call. Positions come from the same formation code as the old meshes, so picking,
+// timing and the simulation do not change; the old meshes stay as the fallback until the atlas loads.
+const CH = { ready: false, n: 0, N: 320, cell: { player: 0, venedik: 1, ceneviz: 2, acem: 3, guard: 4, bandit: 5, camelLoad: 6, camel: 7, tent: 8 } };
+const CH_VERT = `attribute vec3 iPos; attribute vec4 iPar; varying vec2 vUv;
+void main() {
+  vec2 c = position.xy;
+  float cs = cos(iPar.w), sn = sin(iPar.w);
+  c = vec2(c.x * cs - c.y * sn, c.x * sn + c.y * cs);
+  vec4 mv = viewMatrix * vec4(iPos, 1.0);
+  mv.xy += c * iPar.x; mv.z += iPar.x * 0.35;
+  gl_Position = projectionMatrix * mv;
+  float u = iPar.z > 0.0 ? uv.x : 1.0 - uv.x;
+  float col = mod(iPar.y, 3.0), row = floor(iPar.y / 3.0 + 0.01);
+  vUv = vec2((col + u) / 3.0, 1.0 - (row + 1.0 - uv.y) / 3.0);
+}`;
+const CH_FRAG = `uniform sampler2D map; uniform vec3 uTint; uniform float uLight; varying vec2 vUv;
+void main() {
+  vec4 c = texture2D(map, vUv);
+  if (c.a < 0.45) discard;
+  gl_FragColor = vec4(c.rgb * uTint * uLight, 1.0);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`;
+function buildChibi(tex) {
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 2;
+  const N = CH.N, base = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0), g = new THREE.InstancedBufferGeometry();
+  g.index = base.index; g.setAttribute('position', base.attributes.position); g.setAttribute('uv', base.attributes.uv);
+  CH.pos = new THREE.InstancedBufferAttribute(new Float32Array(N * 3), 3).setUsage(THREE.DynamicDrawUsage);
+  CH.par = new THREE.InstancedBufferAttribute(new Float32Array(N * 4), 4).setUsage(THREE.DynamicDrawUsage);
+  g.setAttribute('iPos', CH.pos); g.setAttribute('iPar', CH.par); g.instanceCount = 0;
+  CH.light = { value: 1 };
+  CH.mesh = new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: { map: { value: tex }, uTint: FX.uTint, uLight: CH.light }, vertexShader: CH_VERT, fragmentShader: CH_FRAG }));
+  CH.mesh.frustumCulled = false; CH.mesh.renderOrder = 1; scene.add(CH.mesh);
+  // soft contact shadow under every figure
+  const sc = document.createElement('canvas'); sc.width = sc.height = 64;
+  const x = sc.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(60,30,10,0.55)'); gr.addColorStop(0.6, 'rgba(60,30,10,0.25)'); gr.addColorStop(1, 'rgba(60,30,10,0)');
+  x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+  CH.shadow = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), N);
+  CH.shadow.frustumCulled = false; CH.shadow.count = 0; scene.add(CH.shadow);
+  CH.ready = true;
+}
+const _chR = new THREE.Vector3();
+function chibiBegin() {
+  CH.n = 0;
+  _chR.setFromMatrixColumn(camera.matrixWorld, 0);
+  // figures grow a little when the camera is far, so a caravan still reads on a phone
+  CH.k = 1 + 0.3 * sstep(70, 240, cam.dist);
+}
+function chibiPush(x, y, z, dir, cell, size, sway = 0) {
+  if (!CH.ready || CH.n >= CH.N) return;
+  const i = CH.n++, s = size * CH.k, face = Math.cos(dir) * _chR.x + Math.sin(dir) * _chR.z >= 0 ? 1 : -1;
+  CH.pos.setXYZ(i, x, y, z); CH.par.setXYZ(i, s, cell, face); CH.par.setW(i, sway);
+  _m4.compose(_v.set(x, y + 0.12, z), _q.identity(), _s.set(s * 0.62, 1, s * 0.36));
+  CH.shadow.setMatrixAt(i, _m4);
+}
+function chibiEnd(dk) {
+  if (!CH.ready) return;
+  CH.mesh.geometry.instanceCount = CH.n; CH.pos.needsUpdate = true; CH.par.needsUpdate = true;
+  CH.shadow.count = CH.n; CH.shadow.instanceMatrix.needsUpdate = true;
+  CH.light.value = lerp(1.0, 0.48, dk || 0);
+  for (const k of ['camels', 'legs', 'bundles', 'heads', 'horses', 'ghorses', 'cloaks', 'guards', 'tents', 'bandits']) if (R[k]) R[k].visible = false;
+}
+
 // formation: where each member of a caravan stands this frame
 const OWNER_COL = { player: '#B45309' };
 for (const rv of ECONOMY.rivals) OWNER_COL[rv.id] = rv.color;
@@ -4506,6 +4609,7 @@ function updateCaravans(time) {
   let nCam = 0, nLeg = 0, nB = 0, nH = 0, nGH = 0, nCl = 0, nG = 0, nCamp = 0;
   R.camp.length = 0;
   const SC = CV_SCALE;
+  chibiBegin();
   for (const cv of S.caravans) {
     const M = members(cv);
     const phase = cv.walked * 1.25;
@@ -4517,7 +4621,9 @@ function updateCaravans(time) {
     setInst(R.horses, nH++, M.lead.x, ly + bob, M.lead.z, M.lead.dir, SC);
     setInst(R.cloaks, nCl, M.lead.x, ly + bob, M.lead.z, M.lead.dir, SC);
     R.cloaks.setColorAt(nCl++, col.set(OWNER_COL[cv.owner]));
-    for (const g of M.guards) { const gy = sampleH(g.x, g.z); setInst(R.ghorses, nGH++, g.x, gy + bob, g.z, g.dir, SC); setInst(R.guards, nG++, g.x, gy + bob, g.z, g.dir, SC); }
+    const sway0 = M.moving ? Math.sin(phase * 2) * 0.07 : 0;
+    chibiPush(M.lead.x, ly + bob * 3, M.lead.z, M.lead.dir, CH.cell[cv.owner] ?? 0, 4.6, sway0);
+    for (const g of M.guards) { const gy = sampleH(g.x, g.z); setInst(R.ghorses, nGH++, g.x, gy + bob, g.z, g.dir, SC); setInst(R.guards, nG++, g.x, gy + bob, g.z, g.dir, SC); chibiPush(g.x, gy + bob * 3, g.z, g.dir, CH.cell.guard, 4.2, -sway0); }
     const slots = cargoSlots(cv);
     M.camels.forEach((p, i) => {
       if (nCam >= 110) return;
@@ -4540,6 +4646,7 @@ function updateCaravans(time) {
         R.heads.setMatrixAt(nCam, _leg);
       }
       const sl = slots[i];
+      chibiPush(p.x, y + b2 * 3, p.z, p.dir, sl ? CH.cell.camelLoad : CH.cell.camel, 5.4, roll * 0.8);
       if (sl) {
         const f = 0.55 + sl[1] * 0.45;
         _leg.compose(_v.set(-0.1 * (1 - f), 1.62 * (1 - f), 0), _q.identity(), _s.set(f, f, f)); _leg.premultiply(_base);
@@ -4572,11 +4679,13 @@ function updateCaravans(time) {
     const ox = -Math.sin(p.dir) * 4.2, oz = Math.cos(p.dir) * 4.2;
     const x = p.x + ox, z = p.z + oz, y = sampleH(x, z);
     setInst(R.tents, nt++, x, y - 0.1, z, p.dir, 1);
+    chibiPush(x, y - 0.1, z, p.dir, CH.cell.tent, 7.0);
     const n = Math.min(3, Math.ceil(b.strength));
-    for (let i = 0; i < n; i++) { const a = i * 2.1 + time * 0.3; const fx = x - ox * 0.55 + Math.cos(a) * 1.4, fz = z - oz * 0.55 + Math.sin(a) * 1.4; setInst(R.bandits, nf++, fx, sampleH(fx, fz), fz, a + Math.PI / 2, 1); }
+    for (let i = 0; i < n; i++) { const a = i * 2.1 + time * 0.3; const fx = x - ox * 0.55 + Math.cos(a) * 1.4, fz = z - oz * 0.55 + Math.sin(a) * 1.4; setInst(R.bandits, nf++, fx, sampleH(fx, fz), fz, a + Math.PI / 2, 1); chibiPush(fx, sampleH(fx, fz), fz, a + Math.PI / 2, CH.cell.bandit, 4.0, Math.sin(time * 2 + i) * 0.05); }
     R.banditFires.push([x - ox * 0.3, y + 0.4, z - oz * 0.3]);
   }
   R.tents.count = nt; R.bandits.count = nf; R.tents.instanceMatrix.needsUpdate = true; R.bandits.instanceMatrix.needsUpdate = true;
+  chibiEnd(sstep(0.45, 0.92, sim.nightFactor()));
 }
 const _v2 = new THREE.Vector3();
 function emitDust(x, y, z) {
@@ -4986,9 +5095,9 @@ function buildHud() {
     <div class="chip date-chip" id="hDate" title="${t('chronicle')}">${ICON.sun}<span></span></div>
   </div>
   <div class="stats hud-stats">
-    <div class="chip akce-chip" id="hAkce" title="${t('akce')}">${ICON.coin}<span></span></div>
+    <div class="chip akce-chip" id="hAkce" title="${t('akce')}"><img class="chipimg" src="assets/3d/mal-akce.webp" alt="" draggable="false"><span></span></div>
     <div class="chip cv-chip" id="hCv" title="${t('caravans')}">${ICON.camel}<span></span></div>
-    <div class="chip han-chip" id="hHan" title="${t('hans')}">${ICON.han}<span></span></div>
+    <div class="chip han-chip" id="hHan" title="${t('hans')}"><img class="chipimg" src="assets/3d/mal-han.webp" alt="" draggable="false"><span></span></div>
     <div class="chip rep-chip opt" id="hRep" title="${t('rep')}">${ICON.rep}<span></span></div>
   </div>
   <div class="tools hud-tools">
@@ -5107,7 +5216,7 @@ function renderCvPanel() {
     const stops = [cv.from || '', ...cv.path.segs.map((s) => { const r = ROAD_BY_ID[s.road]; return s.sgn > 0 ? r.b : r.a; })].filter(Boolean);
     route = `<h3>${t('route')}</h3><div class="row" style="flex-wrap:wrap;gap:5px">${ICON.route}${stops.map((c) => `<span class="tag">${cityName(c)}</span>`).join('')}</div>`;
   }
-  p.innerHTML = `<div class="head"><div class="grow"><h2>${t('caravan', { n: cv.num })}</h2><div class="subtitle">${status}${eta ? ' · <b>' + eta + '</b>' : ''}</div></div>
+  p.innerHTML = `<div class="head"><img class="fig3" src="assets/3d/poz-deve.webp" alt="" draggable="false"><div class="grow"><h2>${t('caravan', { n: cv.num })}</h2><div class="subtitle">${status}${eta ? ' · <b>' + eta + '</b>' : ''}</div></div>
     <button class="btn icon close" id="cvClose" aria-label="${t('close')}">${ICON.close}</button></div>
     <h3>${t('cargo')} · ${load}/${cap}</h3><div class="bar"><i style="width:${Math.min(100, load / cap * 100)}%"></i></div>
     <div class="cargo" style="margin-top:8px">${cargo}</div>
@@ -5170,7 +5279,7 @@ function renderCity() {
     sendBtn = `<button class="btn primary sm" id="cSend" style="margin-top:8px">${ICON.route}${label}</button>`;
   }
   const here = sim.playerCaravans().filter((x) => x.city === id);
-  p.innerHTML = `<div class="head"><div class="grow"><h2>${cityName(id)}</h2><div class="subtitle">${t('cityTag.' + id)}</div></div>
+  p.innerHTML = `<div class="head"><img class="fig3" src="assets/3d/poz-kervanbasi.webp" alt="" draggable="false"><div class="grow"><h2>${cityName(id)}</h2><div class="subtitle">${t('cityTag.' + id)}</div></div>
     <button class="btn icon close" id="cClose" aria-label="${t('close')}">${ICON.close}</button></div>
     ${ev ? `<div class="tag" style="margin-top:8px;background:${ev.type === 'plague' ? 'rgba(110,130,40,.22)' : 'rgba(201,162,74,.3)'}">${ev.type === 'plague' ? ICON.plague : ICON.festival}<b>${t(ev.type === 'plague' ? 'eventPlague' : 'eventFestival')}</b> · ${t('days', { n: ev.days })}</div>` : ''}
     <div class="row sp" style="margin-top:8px"><span class="row" style="gap:6px">${ICON.rep}<b>${t('rep')}: ${Math.round(rep)}</b> <span class="muted">${t('repLevels')[repLevel(rep)]}</span></span><span class="muted">spread ${Math.round(sim.spread(id) * 100)}%</span></div>
@@ -5321,7 +5430,7 @@ function renderHan() {
   const H = HANS[id], hs = sim.S.hans[id], r = ROAD_BY_ID[H.road], E = ECONOMY.hans;
   const cost = sim.hanCost(id), lvl = hs.level, next = Math.min(3, lvl + 1);
   const bandit = sim.S.bandits.find((b) => b.road === H.road);
-  p.innerHTML = `<div class="head"><div class="grow"><h2>${HAN_NAMES[id]}</h2><div class="subtitle">${t('hanRoad', { a: cityName(r.a), b: cityName(r.b) })}</div></div>
+  p.innerHTML = `<div class="head"><img class="fig3 han" src="assets/3d/mal-han.webp" alt="" draggable="false"><div class="grow"><h2>${HAN_NAMES[id]}</h2><div class="subtitle">${t('hanRoad', { a: cityName(r.a), b: cityName(r.b) })}</div></div>
     <button class="btn icon close" id="hClose" aria-label="${t('close')}">${ICON.close}</button></div>
     <div class="row" style="margin-top:10px;gap:8px">${ICON.han}<b>${lvl ? t('hanYours', { n: lvl }) : t('hanPublic')}</b></div>
     ${lvl ? `<div class="muted" style="margin-top:4px">${t('hanEarned', { n: fmt(hs.income) })}</div>` : ''}
@@ -5502,7 +5611,7 @@ function closeModal() { $('modal').classList.add('hidden'); $('modal').innerHTML
 function openPause() {
   if (!game.started) return;
   game.modalKind = 'pause';
-  const m = modal(`<h2>${t('paused')}</h2><div class="menu">
+  const m = modal(`<div class="endhead"><img class="fig3 end" src="assets/3d/poz-deve.webp" alt="" draggable="false"><h2>${t('paused')}</h2></div><div class="menu">
     <button class="btn primary" id="pResume">${ICON.play}${t('resume')}</button>
     <button class="btn" id="pRestart">${t('restart')}</button>
     <button class="btn" id="pSettings">${ICON.gear}${t('settings')}</button>
@@ -5626,7 +5735,7 @@ function showEnd(result) {
   const title = result === 'won' ? t('won') : result === 'bankrupt' ? t('bankrupt') : t('timeout');
   const text = result === 'won' ? t('wonText', { day: sc.day }) : result === 'bankrupt' ? t('bankruptText') : t('timeoutText');
   const stars = result === 'won' ? `<div class="stars">${[0, 1, 2].map((i) => (i < sc.stars ? ICON.star : ICON.starOff)).join('')}</div>` : '';
-  const m = modal(`<h2>${title}</h2>${stars}<p style="text-align:center;color:var(--ink-dim);font-size:15.5px;line-height:1.5">${text}</p>
+  const m = modal(`<div class="endhead"><img class="fig3 end" src="assets/3d/poz-${result === 'won' ? 'sevinc' : 'uzgun'}.webp" alt="" draggable="false"><h2>${title}</h2></div>${stars}<p style="text-align:center;color:var(--ink-dim);font-size:15.5px;line-height:1.5">${text}</p>
     ${rec && result !== 'bankrupt' ? `<div class="record">${t('newRecord')}</div>` : ''}
     <div class="bigstat"><div><b>${fmt(sc.score)}</b><span>${t('score')}</span></div><div><b>${fmt(sim.S.akce)}</b><span>${t('akce')}</span></div><div><b>${sc.day}</b><span>${t('dayN')}</span></div><div><b>${sim.S.stats.trips}</b><span>${t('trips')}</span></div></div>
     ${ar.streak ? `<p class="muted" style="text-align:center;margin:8px 0 0">${esc(ar.streak)}</p>` : ''}
@@ -5666,7 +5775,8 @@ function showNews() {
 
 // --- title screen ---
 function renderTitle() {
-  $('titleLogo').innerHTML = LOGO;
+  // stil-3d: the song video's caravan leader and camel stand on the title card instead of the drawn logo
+  $('titleLogo').innerHTML = `<img class="t3 lead" src="assets/3d/poz-kervanbasi.webp" alt="" draggable="false"><img class="t3 camel" src="assets/3d/poz-deve.webp" alt="" draggable="false">`;
   $('tTag').textContent = t('subtitle');
   $('tHow').innerHTML = ['how1', 'how2', 'how3', 'how4'].map((k) => `<li>${t(k)}</li>`).join('');
   const sv = store.get(SAVEKEY);
@@ -5940,6 +6050,8 @@ function applyTerrainDetail(tex) {
 async function loadAssets() {
   if (FLAGS.noassets || location.protocol === 'file:') { ASSETS.state = 'off'; return; }
   const t0 = performance.now();
+  // stil-3d: the chibi atlas is one 150 KB texture and one draw call, so every tier gets it
+  try { buildChibi(await new THREE.TextureLoader().loadAsync('assets/3d/chibi.webp')); ASSETS.loaded.push('chibi'); } catch (e) { ASSETS.failed.push('chibi'); }
   // the Low tier must not get heavier: it keeps the procedural models and only takes the sounds and the parchment
   if (!lowQ()) try {
     const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
