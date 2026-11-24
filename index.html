@@ -2739,6 +2739,45 @@ if (typeof module !== 'undefined') module.exports = API;
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 /*ARENA-KIT:END*/</script>
+<script>
+/* GL-GUARD: WebGL unavailable / three.js CDN unreachable -> clear TR+EN message instead of a stuck loading screen */
+(function () {
+  var T = {
+    gl: ['WebGL kullanılamıyor. Tarayıcında donanım hızlandırmayı aç ya da başka bir tarayıcı dene.', 'WebGL is unavailable. Enable hardware acceleration in your browser or try another browser.'],
+    net: ['Three.js yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.', 'Three.js could not be loaded. Check your connection and reload the page.']
+  };
+  var st = document.createElement('style');
+  st.textContent = '.glfail{margin:10px 0;padding:10px 12px;border-radius:12px;border:1px solid rgba(214,84,60,.65);background:rgba(214,84,60,.16);color:inherit;font-size:13px;line-height:1.4;text-align:left}.glfail p{margin:0 0 4px}.glfail p+p{margin:0;font-size:12px;opacity:.82}.glfail-fixed{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;width:min(92vw,420px);background:#2a1410;color:#f7e9e2;box-shadow:0 8px 30px rgba(0,0,0,.5)}';
+  document.head.appendChild(st);
+  var box = null, kind = '';
+  function show(k) {
+    if (kind === 'gl' && k !== 'gl') return;
+    kind = k; if (k === 'gl') window.__glFailed = true;
+    var pb = document.querySelector('#tPlay'); if (pb) pb.disabled = true;
+    var tr = /^tr/i.test(navigator.language || ''), m = T[k];
+    if (!box) {
+      box = document.createElement('div'); box.className = 'glfail'; box.setAttribute('role', 'alert');
+      var host = document.querySelector('#tHow');
+      if (host && host.getClientRects().length) { if (host.childElementCount) host.parentNode.insertBefore(box, host); else { host.textContent = ''; host.parentNode.insertBefore(box, host.nextSibling); } }
+      else { box.className += ' glfail-fixed'; document.body.appendChild(box); }
+    }
+    box.textContent = '';
+    [tr ? m[0] : m[1], tr ? m[1] : m[0]].forEach(function (s) { var p = document.createElement('p'); p.textContent = s; box.appendChild(p); });
+  }
+  window.__glFatal = show;
+  window.__glClear = function () { if (box && kind === 'net') { box.remove(); box = null; kind = ''; } };
+  // inert stand-in for the renderer when WebGL cannot start, so the menu code below still runs
+  window.__glStub = function (canvas) {
+    var p = new Proxy(function () {}, {
+      get: function (t, k) { return k === 'domElement' ? canvas : k === Symbol.toPrimitive ? function () { return 0; } : k === 'then' ? undefined : p; },
+      set: function () { return true; }, apply: function () { return p; }, construct: function () { return p; }
+    });
+    return p;
+  };
+  setTimeout(function () { if (!window.__three) show('net'); }, 15000);
+})();
+</script>
+
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"},"integrity":{"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js":"sha384-GY5FqjttLCFRt/McQbyaVdCk2O1IQtOeX8Py6NfD89BIAsIyJFRl4UgSXrk2vXAk","https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js":"sha384-Lq1Wl94so5JCKGDvezrdVMJhdeKQkwb8iwRo59QrPPd61CnrCJZLxYmFlQ8ZuOKR","https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/RGBELoader.js":"sha384-df8Ij6+muzecLENB3U9Z40GSfTjNV/TbniF7LQdZiYn4nHS5Javsoo5xFTWG0EJE","https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/utils/BufferGeometryUtils.js":"sha384-wOjwauvHlJO7K6APr7FmMGH2nupQa3Ndzas9bJZhsAMOK055efJud8ns4aYmASKv"}}</script>
 <script type="module">/*ARENA-CORE:BEGIN v2.0.1 sha256:cfe1449bc854*/
 /* ARENA-CORE v2 — shared visual / feel / test layer for the Claude Game Arena games (Furki Ozkan).
@@ -3015,8 +3054,9 @@ const kamera = {
 window.ArenaCore = { version: VERSION, kalite, render, kabuk, his, kamera, test };
 /*ARENA-CORE:END*/</script>
 
-<script type="module">
+<script type="module" onerror="window.__glFatal&&__glFatal('net')">
 import * as THREE from 'three';
+window.__three = true; if (window.__glClear) window.__glClear();
 
 const K = window.KervanCore;
 const { KervanSim, KervanBot, ECONOMY, GOODS, CITIES, CITY_IDS, ROADS, ROAD_BY_ID, HANS, HAN_NAMES, RIVER, MOUNTAINS, pointAt, smoothPath, roleOf, DAYS_PER_YEAR, END_DAY } = K;
@@ -3026,7 +3066,7 @@ const FLAGS = { auto: Q.has('auto'), debug: Q.has('debug'), low: Q.has('low'), s
 const MODEL = 'Claude Opus 5.5';
 const ACCENT = 0xB4532A;
 const loadEl = document.getElementById('tLoad');
-const setLoad = (n) => { if (loadEl) loadEl.textContent = (document.documentElement.lang === 'en' ? 'Loading… ' : 'Yükleniyor… ') + n + '/3'; };
+const setLoad = (n) => { if (loadEl && !window.__glFailed) loadEl.textContent = (document.documentElement.lang === 'en' ? 'Loading… ' : 'Yükleniyor… ') + n + '/3'; };
 setLoad(1);
 
 // ------------------------------------------------------------------------------------------------
@@ -3139,7 +3179,9 @@ function sampleH(x, z) {
 // renderer, scene, lights
 // ------------------------------------------------------------------------------------------------
 const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+let glFail = false, renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+catch (e) { glFail = true; renderer = window.__glStub(canvas); window.__glFatal('gl'); }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowQ() ? 1 : 1.5));
 // arena-kit: dynamic pixel ratio on weak GPUs, never above the quality tier's own cap
 if (window.Arena) Arena.perf.attach({ setPixelRatio: r => { renderer.setPixelRatio(r); if (CFX) CFX.setSize(innerWidth, innerHeight); } }, { max: Math.min(window.devicePixelRatio || 1, lowQ() ? 1 : 1.5) });
@@ -3165,7 +3207,7 @@ scene.add(sun, sun.target);
 // arena-core v2 render preset: neutral tone mapping, CSS vignette + grain, grade (no composer: on Intel UHD the bloom
 // composer cost ~12% fps at 1280x720, so the frame renders directly).
 // ortam 0: the game drives scene.environmentIntensity itself and brings its own HDRI on the High tier.
-const CFX = window.ArenaCore ? ArenaCore.render.setup(renderer, scene, camera, { tonlama: 'neutral', pozlama: 1.08, ortam: 0, bloom: false, vinyet: 0.26, grain: 0.03, renk: { doygunluk: 1.08, kontrast: 1.05 } }) : null;
+const CFX = window.ArenaCore && !glFail ? ArenaCore.render.setup(renderer, scene, camera, { tonlama: 'neutral', pozlama: 1.08, ortam: 0, bloom: false, vinyet: 0.26, grain: 0.03, renk: { doygunluk: 1.08, kontrast: 1.05 } }) : null;
 
 // shared look for every Lambert material: a warm rim light on the silhouettes and drifting cloud shadows on the ground
 // (world-space value noise, no texture). One set of uniforms, updated once per frame in updateLight().
@@ -5795,7 +5837,7 @@ function renderTitle() {
   const best = store.get(BESTKEY);
   $('tBest').innerHTML = best ? `${ICON.star} <span>${t('best', { score: fmt(best.score), stars: best.stars, day: best.day })}</span>` : t('noBest');
   $('footer').textContent = t('footer', { model: MODEL });
-  $('tLoad').classList.toggle('hidden', worldReady);
+  $('tLoad').classList.toggle('hidden', worldReady || glFail);
   const pl = $('tPlay'); if (pl) pl.onclick = () => { Sound.init(); store.del(SAVEKEY); newGame(); };
   const co = $('tCont'); if (co) co.onclick = () => { Sound.init(); loadGame(); };
   const dl = $('tDaily'); if (dl) dl.onclick = () => { Sound.init(); store.del(SAVEKEY); newGame({ daily: Arena.daily() }); };
@@ -6123,13 +6165,13 @@ try {
   buildTerrain(); buildBoardEdge(); buildWater(); buildRoads(); buildStatics(); buildTrees(); buildShips(); buildDynamic();
   attachSim();
   buildLabels();
-  worldReady = true; setLoad(3);
+  worldReady = !glFail; setLoad(3);
   renderTitle();
   updateCamera(1);
-  if (FLAGS.auto) { newGame(); game.speedIdx = 2; }
-  if (FLAGS.sim) { if (!game.started) newGame(); fastForward(FLAGS.sim); }
+  if (FLAGS.auto && !glFail) { newGame(); game.speedIdx = 2; }
+  if (FLAGS.sim && !glFail) { if (!game.started) newGame(); fastForward(FLAGS.sim); }
   requestAnimationFrame(frame);
-  requestAnimationFrame(() => setTimeout(() => loadAssets().catch((e) => ASSETS.failed.push(String(e))), 30));
+  if (!glFail) requestAnimationFrame(() => setTimeout(() => loadAssets().catch((e) => ASSETS.failed.push(String(e))), 30));
 } catch (err) {
   window.__errors.push('boot: ' + err.message);
   const f = document.createElement('div'); f.id = 'fatal'; f.textContent = 'Kervan failed to start: ' + err.message; document.body.appendChild(f);
